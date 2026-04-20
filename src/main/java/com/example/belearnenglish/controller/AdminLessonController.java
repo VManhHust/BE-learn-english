@@ -3,7 +3,10 @@ package com.example.belearnenglish.controller;
 import com.example.belearnenglish.dto.BatchImportRequest;
 import com.example.belearnenglish.dto.ImportLessonRequest;
 import com.example.belearnenglish.dto.LessonDto;
+import com.example.belearnenglish.dto.TranscriptSegmentRequest;
+import com.example.belearnenglish.dto.TranscriptSegmentResponse;
 import com.example.belearnenglish.service.AdminLessonService;
+import com.example.belearnenglish.service.AdminTranscriptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +18,11 @@ import java.util.List;
 public class AdminLessonController {
 
     private final AdminLessonService adminLessonService;
+    private final AdminTranscriptService adminTranscriptService;
 
-    public AdminLessonController(AdminLessonService adminLessonService) {
+    public AdminLessonController(AdminLessonService adminLessonService, AdminTranscriptService adminTranscriptService) {
         this.adminLessonService = adminLessonService;
+        this.adminTranscriptService = adminTranscriptService;
     }
 
     /**
@@ -93,6 +98,30 @@ public class AdminLessonController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLesson(@PathVariable Long id) {
         adminLessonService.deleteLesson(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Transcript endpoints ──────────────────────────────────────────────────
+
+    /** POST /api/admin/lessons/{lessonId}/transcript — replace all segments */
+    @PostMapping("/{lessonId}/transcript")
+    public ResponseEntity<List<TranscriptSegmentResponse>> saveTranscript(
+            @PathVariable Long lessonId,
+            @RequestBody List<TranscriptSegmentRequest> segments) {
+        List<TranscriptSegmentResponse> saved = adminTranscriptService.saveTranscript(lessonId, segments);
+        return ResponseEntity.ok(saved);
+    }
+
+    /** GET /api/admin/lessons/{lessonId}/transcript — fetch current transcript */
+    @GetMapping("/{lessonId}/transcript")
+    public ResponseEntity<List<TranscriptSegmentResponse>> getTranscript(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(adminTranscriptService.getTranscript(lessonId));
+    }
+
+    /** DELETE /api/admin/lessons/{lessonId}/transcript — delete all segments */
+    @DeleteMapping("/{lessonId}/transcript")
+    public ResponseEntity<Void> deleteTranscript(@PathVariable Long lessonId) {
+        adminTranscriptService.deleteTranscript(lessonId);
         return ResponseEntity.noContent().build();
     }
 

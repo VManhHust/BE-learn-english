@@ -2,8 +2,10 @@ package com.example.belearnenglish.controller;
 
 import com.example.belearnenglish.dto.TranscriptSegment;
 import com.example.belearnenglish.entity.Lesson;
+import com.example.belearnenglish.entity.TranscriptSegmentEntity;
 import com.example.belearnenglish.exception.TranscriptFetchException;
 import com.example.belearnenglish.repository.LessonRepository;
+import com.example.belearnenglish.repository.TranscriptSegmentRepository;
 import com.example.belearnenglish.service.YouTubeTranscriptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +19,14 @@ public class TranscriptController {
 
     private final LessonRepository lessonRepository;
     private final YouTubeTranscriptService transcriptService;
+    private final TranscriptSegmentRepository transcriptSegmentRepository;
 
-    public TranscriptController(LessonRepository lessonRepository, YouTubeTranscriptService transcriptService) {
+    public TranscriptController(LessonRepository lessonRepository,
+                                YouTubeTranscriptService transcriptService,
+                                TranscriptSegmentRepository transcriptSegmentRepository) {
         this.lessonRepository = lessonRepository;
         this.transcriptService = transcriptService;
+        this.transcriptSegmentRepository = transcriptSegmentRepository;
     }
 
     @GetMapping("/{id}/transcript")
@@ -28,6 +34,20 @@ public class TranscriptController {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + id));
 
+        // Check DB for manual transcript first
+        List<TranscriptSegmentEntity> manual = transcriptSegmentRepository.findByLessonIdOrderBySegmentIndex(id);
+        if (!manual.isEmpty()) {
+            List<TranscriptSegment> segments = manual.stream()
+                    .map(e -> new TranscriptSegment(
+                            e.getSegmentIndex(),
+                            e.getStartTime(),
+                            e.getEndTime() - e.getStartTime(), // duration = endTime - startTime
+                            e.getText()))
+                    .toList();
+            return ResponseEntity.ok(segments);
+        }
+
+        // Fallback to YouTube
         if (lesson.getYoutubeId() == null) {
             return ResponseEntity.ok(List.of());
         }
