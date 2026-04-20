@@ -1,5 +1,6 @@
 package com.example.belearnenglish.controller;
 
+import com.example.belearnenglish.dto.BilingualSegmentDto;
 import com.example.belearnenglish.dto.TranscriptSegment;
 import com.example.belearnenglish.entity.Lesson;
 import com.example.belearnenglish.entity.TranscriptSegmentEntity;
@@ -59,6 +60,24 @@ public class TranscriptController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(e.getMessage());
         }
+    }
+
+    @GetMapping("/{id}/bilingual")
+    public ResponseEntity<?> getBilingualSegments(@PathVariable Long id) {
+        if (!lessonRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        List<TranscriptSegmentEntity> entities =
+                transcriptSegmentRepository.findByLessonIdOrderBySegmentIndex(id);
+        List<BilingualSegmentDto> result = entities.stream()
+                .map(e -> new BilingualSegmentDto(
+                        e.getSegmentIndex(),
+                        e.getStartTime(),
+                        e.getEndTime(),
+                        e.getText(),
+                        e.getTranslation()))
+                .toList();
+        return ResponseEntity.ok(result);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
