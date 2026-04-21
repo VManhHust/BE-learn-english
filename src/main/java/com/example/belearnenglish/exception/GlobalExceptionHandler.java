@@ -2,6 +2,7 @@ package com.example.belearnenglish.exception;
 
 import com.example.belearnenglish.dto.ErrorResponse;
 import io.jsonwebtoken.JwtException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,7 +10,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -38,9 +41,17 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("Token invalid or expired"));
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+        log.warn("ResponseStatusException: status={}, reason={}", ex.getStatusCode(), ex.getReason());
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(new ErrorResponse(ex.getReason()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+        log.error("Unhandled exception: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Internal server error"));
+                .body(new ErrorResponse("Internal server error: " + ex.getMessage()));
     }
 }

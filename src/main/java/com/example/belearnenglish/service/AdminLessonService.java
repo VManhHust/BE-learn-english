@@ -1,149 +1,91 @@
 package com.example.belearnenglish.service;
 
-import com.example.belearnenglish.dto.BatchImportRequest;
-import com.example.belearnenglish.dto.ImportLessonRequest;
-import com.example.belearnenglish.dto.LessonDto;
-import com.example.belearnenglish.entity.Lesson;
-import com.example.belearnenglish.entity.Topic;
-import com.example.belearnenglish.repository.LessonRepository;
-import com.example.belearnenglish.repository.TopicRepository;
+import com.example.belearnenglish.dto.LearningExerciseDto;
+import com.example.belearnenglish.dto.SaveExerciseRequest;
+import com.example.belearnenglish.entity.*;
+import com.example.belearnenglish.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor
 public class AdminLessonService {
 
-    private final LessonRepository lessonRepository;
-    private final TopicRepository topicRepository;
-    
+    private final LearningExerciseRepository exerciseRepository;
+    private final YoutubeExerciseExtensionRepository extensionRepository;
+    private final YoutubeChannelRepository channelRepository;
+    private final LearningTopicRepository topicRepository;
+    private final YoutubeExerciseService youtubeExerciseService;
+
     private static final Pattern YOUTUBE_ID_PATTERN = Pattern.compile(
         "(?:youtube\\.com/watch\\?v=|youtu\\.be/|youtube\\.com/embed/)([a-zA-Z0-9_-]{11})"
     );
 
-    public AdminLessonService(LessonRepository lessonRepository, TopicRepository topicRepository) {
-        this.lessonRepository = lessonRepository;
-        this.topicRepository = topicRepository;
-    }
-
     @Transactional
-    public LessonDto importLesson(ImportLessonRequest request) {
-        Topic topic = topicRepository.findById(request.topicId())
-                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + request.topicId()));
+    public LearningExerciseDto importLesson(Long topicId, String youtubeUrl, String title,
+                                            String level, String channelYoutubeId) {
+        String videoId = extractYoutubeId(youtubeUrl);
+        if (videoId == null) throw new IllegalArgumentException("Invalid YouTube URL: " + youtubeUrl);
 
-        String youtubeId = extractYoutubeId(request.youtubeUrl());
-        if (youtubeId == null) {
-            throw new IllegalArgumentException("Invalid YouTube URL: " + request.youtubeUrl());
-        }
+        LearningTopic topic = topicRepository.findById(topicId)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicId));
 
-        Lesson lesson = Lesson.builder()
-                .topic(topic)
-                .title(request.title())
-                .youtubeUrl(request.youtubeUrl())
-                .youtubeId(youtubeId)
-                .thumbnail("https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg")
-                .level(request.level() != null ? request.level() : "A1")
-                .viewCount(0L)
-                .source("Youtube")
-                .hasDictation(request.hasDictation() != null ? request.hasDictation() : true)
-                .hasShadowing(request.hasShadowing() != null ? request.hasShadowing() : true)
+        YoutubeChannel channel = channelRepository.findByChannelYoutubeId(channelYoutubeId)
+                .orElseThrow(() -> new IllegalArgumentException("Channel not found: " + channelYoutubeId));
+
+        LearningExercise exercise = LearningExercise.builder()
+                .uuid(videoId)
+                .type(LearningExerciseType.YOUTUBE_VIDEO)
+                .title(title)
+                .vocabularyLevel(level != null ? level : "A1")
+                .moduleCount(0)
+                .learningTopic(topic)
                 .build();
 
-        lesson = lessonRepository.save(lesson);
-        return toLessonDto(lesson);
+        YoutubeExerciseExtension ext = YoutubeExerciseExtension.builder()
+                .videoId(videoId)
+                .thumbnailUrl("https://img.youtube.com/vi/" + videoId + "/mqdefault.jpg")
+                .youtubeChannel(channel)
+                .learningExercise(exercise)
+                .build();
+
+        exercise.setYoutubeExerciseExtension(ext);
+        exerciseRepository.save(exercise);
+        return youtubeExerciseService.toExerciseDtoPublic(exercise, ext);
     }
 
     @Transactional
-    public List<LessonDto> batchImport(BatchImportRequest request) {
-        Topic topic = topicRepository.findById(request.topicId())
-                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + request.topicId()));
-
-        List<LessonDto> imported = new ArrayList<>();
-        
-        for (BatchImportRequest.LessonImportItem item : request.lessons()) {
-            String youtubeId = extractYoutubeId(item.youtubeUrl());
-            if (youtubeId == null) {
-                continue; // Skip invalid URLs
-            }
-
-            Lesson lesson = Lesson.builder()
-                    .topic(topic)
-                    .title(item.title())
-                    .youtubeUrl(item.youtubeUrl())
-                    .youtubeId(youtubeId)
-                    .thumbnail("https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg")
-                    .level(item.level() != null ? item.level() : "A1")
-                    .viewCount(0L)
-                    .source("Youtube")
-                    .hasDictation(item.hasDictation() != null ? item.hasDictation() : true)
-                    .hasShadowing(item.hasShadowing() != null ? item.hasShadowing() : true)
-                    .build();
-
-            lesson = lessonRepository.save(lesson);
-            imported.add(toLessonDto(lesson));
-        }
-
-        return imported;
+    public List<LearningExerciseDto> batchImport(Long topicId, String channelYoutubeId,
+                                                  List<SaveExerciseRequest> requests) {
+        return requests.stream()
+                .map(r -> importLesson(topicId, "https://www.youtube.com/watch?v=" + r.videoId(),
+                        r.title(), r.vocabularyLevel(), channelYoutubeId))
+                .toList();
     }
 
     @Transactional
     public void deleteLesson(Long lessonId) {
-        lessonRepository.deleteById(lessonId);
+        exerciseRepository.deleteById(lessonId);
     }
 
     @Transactional
-    public LessonDto updateLesson(Long lessonId, ImportLessonRequest request) {
-        Lesson lesson = lessonRepository.findById(lessonId)
+    public LearningExerciseDto updateLesson(Long lessonId, String title, String level) {
+        LearningExercise exercise = exerciseRepository.findById(lessonId)
                 .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + lessonId));
-
-        if (request.title() != null) {
-            lesson.setTitle(request.title());
-        }
-        if (request.youtubeUrl() != null) {
-            String youtubeId = extractYoutubeId(request.youtubeUrl());
-            if (youtubeId != null) {
-                lesson.setYoutubeUrl(request.youtubeUrl());
-                lesson.setYoutubeId(youtubeId);
-                lesson.setThumbnail("https://img.youtube.com/vi/" + youtubeId + "/mqdefault.jpg");
-            }
-        }
-        if (request.level() != null) {
-            lesson.setLevel(request.level());
-        }
-        if (request.hasDictation() != null) {
-            lesson.setHasDictation(request.hasDictation());
-        }
-        if (request.hasShadowing() != null) {
-            lesson.setHasShadowing(request.hasShadowing());
-        }
-
-        lesson = lessonRepository.save(lesson);
-        return toLessonDto(lesson);
+        if (title != null) exercise.setTitle(title);
+        if (level != null) exercise.setVocabularyLevel(level);
+        exerciseRepository.save(exercise);
+        return youtubeExerciseService.toExerciseDtoPublic(exercise, exercise.getYoutubeExerciseExtension());
     }
 
     private String extractYoutubeId(String url) {
         if (url == null) return null;
         Matcher matcher = YOUTUBE_ID_PATTERN.matcher(url);
         return matcher.find() ? matcher.group(1) : null;
-    }
-
-    private LessonDto toLessonDto(Lesson l) {
-        return new LessonDto(
-            l.getId(),
-            l.getTitle(),
-            l.getThumbnail(),
-            l.getDuration(),
-            l.getLevel(),
-            l.getViewCount(),
-            l.getSource(),
-            l.getHasDictation(),
-            l.getHasShadowing(),
-            l.getYoutubeUrl(),
-            l.getYoutubeId()
-        );
     }
 }

@@ -1,6 +1,8 @@
 package com.example.belearnenglish.dto;
 
+import java.util.List;
+
 public record SpeakingResponse(
-        UserStatsDto userStats,
-        int onlineCount
+        int totalSessions,
+        List<RoomDto> recentRooms
 ) {}

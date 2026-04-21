@@ -1,46 +1,31 @@
 package com.example.belearnenglish.service;
 
-import com.example.belearnenglish.dto.LessonDto;
-import com.example.belearnenglish.entity.Lesson;
-import com.example.belearnenglish.entity.Topic;
-import com.example.belearnenglish.repository.LessonRepository;
-import com.example.belearnenglish.repository.TopicRepository;
+import com.example.belearnenglish.dto.LearningExerciseDto;
+import com.example.belearnenglish.entity.YoutubeExerciseExtension;
+import com.example.belearnenglish.repository.LearningTopicRepository;
+import com.example.belearnenglish.repository.YoutubeExerciseExtensionRepository;
+import com.example.belearnenglish.entity.LearningTopicType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class LessonService {
 
-    private final LessonRepository lessonRepository;
-    private final TopicRepository topicRepository;
+    private final YoutubeExerciseExtensionRepository extensionRepository;
+    private final LearningTopicRepository topicRepository;
+    private final YoutubeExerciseService youtubeExerciseService;
 
-    public LessonService(LessonRepository lessonRepository, TopicRepository topicRepository) {
-        this.lessonRepository = lessonRepository;
-        this.topicRepository = topicRepository;
+    public Page<LearningExerciseDto> getLessonsByTopicType(LearningTopicType type, Pageable pageable) {
+        // Hiện tại chỉ hỗ trợ YOUTUBE — lấy tất cả exercise theo channel
+        // Trả về toàn bộ exercises thuộc topic YOUTUBE
+        return extensionRepository.findAll(pageable)
+                .map(ext -> youtubeExerciseService.toExerciseDtoPublic(ext.getLearningExercise(), ext));
     }
 
-    public Page<LessonDto> getLessonsByTopicSlug(String slug, Pageable pageable) {
-        Topic topic = topicRepository.findBySlug(slug)
-                .orElseThrow(() -> new IllegalArgumentException("Topic not found with slug: " + slug));
-        
-        return lessonRepository.findByTopicId(topic.getId(), pageable)
-                .map(this::toLessonDto);
-    }
-
-    private LessonDto toLessonDto(Lesson l) {
-        return new LessonDto(
-            l.getId(),
-            l.getTitle(),
-            l.getThumbnail(),
-            l.getDuration(),
-            l.getLevel(),
-            l.getViewCount(),
-            l.getSource(),
-            l.getHasDictation(),
-            l.getHasShadowing(),
-            l.getYoutubeUrl(),
-            l.getYoutubeId()
-        );
+    public LearningExerciseDto getLessonById(Long id) {
+        return youtubeExerciseService.getExerciseById(id);
     }
 }

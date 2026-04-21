@@ -1,75 +1,47 @@
 package com.example.belearnenglish.service;
 
-import com.example.belearnenglish.dto.TranscriptSegmentRequest;
-import com.example.belearnenglish.dto.TranscriptSegmentResponse;
-import com.example.belearnenglish.entity.Lesson;
-import com.example.belearnenglish.entity.TranscriptSegmentEntity;
-import com.example.belearnenglish.repository.LessonRepository;
-import com.example.belearnenglish.repository.TranscriptSegmentRepository;
+import com.example.belearnenglish.dto.ExerciseModuleDto;
+import com.example.belearnenglish.dto.SaveModuleRequest;
+import com.example.belearnenglish.repository.LearningExerciseRepository;
+import com.example.belearnenglish.repository.YoutubeExerciseExtensionRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AdminTranscriptService {
 
-    private final TranscriptSegmentRepository transcriptRepo;
-    private final LessonRepository lessonRepository;
-
-    public AdminTranscriptService(TranscriptSegmentRepository transcriptRepo, LessonRepository lessonRepository) {
-        this.transcriptRepo = transcriptRepo;
-        this.lessonRepository = lessonRepository;
-    }
+    private final YoutubeExerciseService youtubeExerciseService;
+    private final LearningExerciseRepository exerciseRepository;
+    private final YoutubeExerciseExtensionRepository extensionRepository;
 
     @Transactional
-    public List<TranscriptSegmentResponse> saveTranscript(Long lessonId, List<TranscriptSegmentRequest> requests) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + lessonId));
-
-        transcriptRepo.deleteByLessonId(lessonId);
-
-        List<TranscriptSegmentEntity> entities = requests.stream()
-                .map(r -> TranscriptSegmentEntity.builder()
-                        .lesson(lesson)
-                        .segmentIndex(r.segmentIndex())
-                        .startTime(r.startTime())
-                        .endTime(r.endTime())
-                        .text(r.text())
-                        .translation(r.translation())
-                        .build())
-                .toList();
-
-        List<TranscriptSegmentEntity> saved = transcriptRepo.saveAll(entities);
-        return saved.stream().map(this::toResponse).toList();
+    public List<ExerciseModuleDto> saveTranscript(Long lessonId, List<SaveModuleRequest> requests) {
+        // lessonId = LearningExercise.id, lấy videoId từ extension rồi delegate
+        String videoId = extensionRepository.findByLearningExerciseId(lessonId)
+                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + lessonId))
+                .getVideoId();
+        youtubeExerciseService.saveModules(videoId, requests);
+        return getTranscript(lessonId);
     }
 
     @Transactional(readOnly = true)
-    public List<TranscriptSegmentResponse> getTranscript(Long lessonId) {
-        if (!lessonRepository.existsById(lessonId)) {
+    public List<ExerciseModuleDto> getTranscript(Long lessonId) {
+        if (!exerciseRepository.existsById(lessonId)) {
             throw new IllegalArgumentException("Lesson not found: " + lessonId);
         }
-        return transcriptRepo.findByLessonIdOrderBySegmentIndex(lessonId)
-                .stream().map(this::toResponse).toList();
+        return youtubeExerciseService.getModules(lessonId, 0, Integer.MAX_VALUE);
     }
 
     @Transactional
     public void deleteTranscript(Long lessonId) {
-        if (!lessonRepository.existsById(lessonId)) {
-            throw new IllegalArgumentException("Lesson not found: " + lessonId);
-        }
-        transcriptRepo.deleteByLessonId(lessonId);
-    }
-
-    private TranscriptSegmentResponse toResponse(TranscriptSegmentEntity e) {
-        return new TranscriptSegmentResponse(
-                e.getId(),
-                e.getLesson().getId(),
-                e.getSegmentIndex(),
-                e.getStartTime(),
-                e.getEndTime(),
-                e.getText(),
-                e.getTranslation()
-        );
+        String videoId = extensionRepository.findByLearningExerciseId(lessonId)
+                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + lessonId))
+                .getVideoId();
+        youtubeExerciseService.saveModules(videoId, List.of());
     }
 }

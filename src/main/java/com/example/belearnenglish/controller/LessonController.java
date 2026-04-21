@@ -1,78 +1,53 @@
 package com.example.belearnenglish.controller;
 
-import com.example.belearnenglish.dto.LessonDto;
-import com.example.belearnenglish.entity.Lesson;
-import com.example.belearnenglish.repository.LessonRepository;
+import com.example.belearnenglish.dto.LearningExerciseDto;
 import com.example.belearnenglish.service.LessonService;
+import com.example.belearnenglish.service.YoutubeExerciseService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/lessons")
+@RequiredArgsConstructor
 public class LessonController {
 
     private final LessonService lessonService;
-    private final LessonRepository lessonRepository;
-
-    public LessonController(LessonService lessonService, LessonRepository lessonRepository) {
-        this.lessonService = lessonService;
-        this.lessonRepository = lessonRepository;
-    }
+    private final YoutubeExerciseService youtubeExerciseService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<LessonDto> getLesson(@PathVariable Long id) {
-        return lessonRepository.findById(id)
-                .map(l -> ResponseEntity.ok(new LessonDto(
-                        l.getId(), l.getTitle(), l.getThumbnail(), l.getDuration(),
-                        l.getLevel(), l.getViewCount(), l.getSource(),
-                        l.getHasDictation(), l.getHasShadowing(),
-                        l.getYoutubeUrl(), l.getYoutubeId())))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<LearningExerciseDto> getLesson(@PathVariable Long id) {
+        return ResponseEntity.ok(lessonService.getLessonById(id));
     }
 
-    @GetMapping("/movie-short-clip")
-    public ResponseEntity<Page<LessonDto>> getMovieShortClipLessons(
+    @GetMapping("/channel/{channelId}")
+    public ResponseEntity<Page<LearningExerciseDto>> getLessonsByChannel(
+            @PathVariable Long channelId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "viewCount") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
     ) {
-        Pageable pageable = PageRequest.of(page, size, 
-            sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending());
-        return ResponseEntity.ok(lessonService.getLessonsByTopicSlug("movie-short-clip", pageable));
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(youtubeExerciseService.getExercisesByChannel(channelId, page, size));
     }
 
-    @GetMapping("/daily-conversation")
-    public ResponseEntity<Page<LessonDto>> getDailyConversationLessons(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "viewCount") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
+    @GetMapping("/{id}/modules")
+    public ResponseEntity<?> getModules(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit
     ) {
-        Pageable pageable = PageRequest.of(page, size, 
-            sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending());
-        return ResponseEntity.ok(lessonService.getLessonsByTopicSlug("daily-english-conversation", pageable));
-    }
-
-    @GetMapping("/learning-resource")
-    public ResponseEntity<Page<LessonDto>> getLearningResourceLessons(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "viewCount") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir
-    ) {
-        Pageable pageable = PageRequest.of(page, size, 
-            sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending());
-        return ResponseEntity.ok(lessonService.getLessonsByTopicSlug("learning-resources", pageable));
+        return ResponseEntity.ok(youtubeExerciseService.getModules(id, offset, limit));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleNotFound(IllegalArgumentException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        return ResponseEntity.notFound().build();
     }
 }

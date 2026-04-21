@@ -1,9 +1,9 @@
 package com.example.belearnenglish.dto;
 
 public record RoomDto(
-        long id,
+        Long id,
         String roomName,
-        int currentMembers,
         int maxMembers,
-        boolean isPublic
+        boolean isPublic,
+        int currentMembers
 ) {}
