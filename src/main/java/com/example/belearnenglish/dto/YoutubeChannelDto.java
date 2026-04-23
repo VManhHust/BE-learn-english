@@ -1,10 +1,17 @@
 package com.example.belearnenglish.dto;
 
-public record YoutubeChannelDto(
-        Long id,
-        String channelYoutubeId,
-        String channelName,
-        String channelImgUrl,
-        String channelDescription,
-        Long subscriberCount
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class YoutubeChannelDto {
+    private Long id;
+    private String channelYoutubeId;
+    private String channelName;
+    private String channelImgUrl;
+    private String channelDescription;
+    private Long subscriberCount;
+}

@@ -1,3 +1,14 @@
 package com.example.belearnenglish.security;
 
-public record JwtClaims(Long userId, String email, String role) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class JwtClaims {
+    private Long userId;
+    private String email;
+    private String role;
+}

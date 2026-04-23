@@ -26,8 +26,8 @@ public class AdminLessonController {
     @PostMapping("/import")
     public ResponseEntity<LearningExerciseDto> importLesson(@RequestBody ImportLessonRequest request) {
         LearningExerciseDto lesson = adminLessonService.importLesson(
-                request.topicId(), request.youtubeUrl(), request.title(),
-                request.level(), request.channelYoutubeId());
+                request.getTopicId(), request.getYoutubeUrl(), request.getTitle(),
+                request.getLevel(), request.getChannelYoutubeId());
         return ResponseEntity.status(HttpStatus.CREATED).body(lesson);
     }
 
@@ -39,7 +39,7 @@ public class AdminLessonController {
     @PostMapping("/batch-import")
     public ResponseEntity<List<LearningExerciseDto>> batchImport(@RequestBody BatchImportRequest request) {
         List<LearningExerciseDto> lessons = adminLessonService.batchImport(
-                request.topicId(), request.channelYoutubeId(), request.lessons());
+                request.getTopicId(), request.getChannelYoutubeId(), request.getLessons());
         return ResponseEntity.status(HttpStatus.CREATED).body(lessons);
     }
 
@@ -48,7 +48,7 @@ public class AdminLessonController {
     public ResponseEntity<LearningExerciseDto> updateLesson(
             @PathVariable Long id,
             @RequestBody UpdateLessonRequest request) {
-        return ResponseEntity.ok(adminLessonService.updateLesson(id, request.title(), request.level()));
+        return ResponseEntity.ok(adminLessonService.updateLesson(id, request.getTitle(), request.getLevel()));
     }
 
     /** DELETE /api/admin/lessons/{id} */

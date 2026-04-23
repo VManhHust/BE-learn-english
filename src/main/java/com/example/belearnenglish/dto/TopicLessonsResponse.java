@@ -1,13 +1,20 @@
 package com.example.belearnenglish.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record TopicLessonsResponse(
-        Long topicId,
-        String topicName,
-        long totalElements,
-        int totalPages,
-        int page,
-        int size,
-        List<LessonPreviewDto> content
-) {}
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TopicLessonsResponse {
+    private Long topicId;
+    private String topicName;
+    private long totalElements;
+    private int totalPages;
+    private int page;
+    private int size;
+    private List<LessonPreviewDto> content;
+}

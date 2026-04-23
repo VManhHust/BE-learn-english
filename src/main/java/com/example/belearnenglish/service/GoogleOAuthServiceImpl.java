@@ -59,26 +59,37 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
 
             String userInfoBody = restClient.get()
                     .uri(GOOGLE_USERINFO_URL)
-                    .header("Authorization", "Bearer " + tokenResponse.accessToken())
+                    .header("Authorization", "Bearer " + tokenResponse.getAccessToken())
                     .retrieve()
                     .body(String.class);
 
             UserInfoResponse userInfo = objectMapper.readValue(userInfoBody, UserInfoResponse.class);
 
-            return new GoogleUserInfo(userInfo.email(), userInfo.name(), userInfo.id());
+            return new GoogleUserInfo(userInfo.getEmail(), userInfo.getName(), userInfo.getId());
         } catch (Exception e) {
             throw new RuntimeException("oauth_failed", e);
         }
     }
 
-    private record TokenResponse(
-            @JsonProperty("access_token") String accessToken,
-            @JsonProperty("token_type") String tokenType
-    ) {}
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    private static class TokenResponse {
+        @JsonProperty("access_token")
+        private String accessToken;
+        @JsonProperty("token_type")
+        private String tokenType;
+    }
 
-    private record UserInfoResponse(
-            @JsonProperty("id") String id,
-            @JsonProperty("email") String email,
-            @JsonProperty("name") String name
-    ) {}
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    private static class UserInfoResponse {
+        @JsonProperty("id")
+        private String id;
+        @JsonProperty("email")
+        private String email;
+        @JsonProperty("name")
+        private String name;
+    }
 }

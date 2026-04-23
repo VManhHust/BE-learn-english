@@ -1,5 +1,6 @@
 package com.example.belearnenglish.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class ExerciseModule {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
+    @JsonIgnore
     private LearningExercise learningExercise;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

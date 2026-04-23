@@ -1,0 +1,165 @@
+2026-04-23 23:23:54,282 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:23:54,283 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:23:56,323 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:23:56,329 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:23:56,341 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:23:56,378 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:23:56,378 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:23:57,014 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:23:57,015 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:23:57,015 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:23:57,113 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:23:57,113 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:23:57,114 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:24:01,138 - retry_handler - WARNING - Attempt 1 failed: Connection error: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /api/v1/topic/youtube/channel/save (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")). Retrying in 1.0 seconds...
+2026-04-23 23:24:06,172 - retry_handler - WARNING - Attempt 2 failed: Connection error: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /api/v1/topic/youtube/channel/save (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")). Retrying in 2.0 seconds...
+2026-04-23 23:24:12,201 - retry_handler - WARNING - Attempt 3 failed: Connection error: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /api/v1/topic/youtube/channel/save (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it")). Retrying in 4.0 seconds...
+2026-04-23 23:24:20,235 - backend_api_client - ERROR - Failed to save channel after retries: Failed after 3 retry attempts: Connection error: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /api/v1/topic/youtube/channel/save (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-23 23:24:20,236 - __main__ - ERROR - Retry exhausted: Failed after 3 retry attempts: Connection error: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /api/v1/topic/youtube/channel/save (Caused by NewConnectionError("HTTPConnection(host='localhost', port=8080): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it"))
+2026-04-23 23:24:20,237 - __main__ - WARNING - API integration failed, but transcript was downloaded successfully
+2026-04-23 23:24:20,238 - __main__ - INFO - Total processing time: 25.95 seconds
+2026-04-23 23:26:48,317 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:26:48,318 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:26:50,199 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:26:50,201 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:26:50,205 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:26:50,213 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:26:50,213 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:26:50,900 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:26:50,900 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:26:50,901 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:26:50,997 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:26:50,997 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:26:50,998 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:26:51,160 - backend_api_client - ERROR - Failed to save channel: 
+2026-04-23 23:26:51,160 - __main__ - ERROR - Backend API error: API_CLIENT_ERROR - 
+2026-04-23 23:26:51,161 - __main__ - WARNING - API integration failed, but transcript was downloaded successfully
+2026-04-23 23:26:51,161 - __main__ - INFO - Total processing time: 2.84 seconds
+2026-04-23 23:30:22,185 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:30:22,185 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:30:23,943 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:30:23,945 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:30:23,950 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:30:23,958 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:30:23,958 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:30:24,639 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:30:24,640 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:30:24,640 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:30:24,740 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:30:24,741 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:30:24,741 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:30:25,253 - backend_api_client - INFO - Successfully saved channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:30:25,253 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-23 23:30:25,253 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:30:25,337 - retry_handler - WARNING - Attempt 1 failed: HTTP 500: {"error":"Internal server error: Query did not return a unique result: 6 results were returned"}. Retrying in 1.0 seconds...
+2026-04-23 23:30:26,378 - retry_handler - WARNING - Attempt 2 failed: HTTP 500: {"error":"Internal server error: Query did not return a unique result: 6 results were returned"}. Retrying in 2.0 seconds...
+2026-04-23 23:30:28,413 - retry_handler - WARNING - Attempt 3 failed: HTTP 500: {"error":"Internal server error: Query did not return a unique result: 6 results were returned"}. Retrying in 4.0 seconds...
+2026-04-23 23:30:32,445 - backend_api_client - ERROR - Failed to save exercises after retries: Failed after 3 retry attempts: HTTP 500: {"error":"Internal server error: Query did not return a unique result: 6 results were returned"}
+2026-04-23 23:30:32,445 - __main__ - ERROR - Retry exhausted: Failed after 3 retry attempts: HTTP 500: {"error":"Internal server error: Query did not return a unique result: 6 results were returned"}
+2026-04-23 23:30:32,445 - __main__ - WARNING - API integration failed, but transcript was downloaded successfully
+2026-04-23 23:30:32,446 - __main__ - INFO - Total processing time: 10.26 seconds
+2026-04-23 23:38:52,404 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:38:52,405 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:38:54,324 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:38:54,327 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:38:54,332 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:38:54,340 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:38:54,341 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:38:55,111 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:38:55,111 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:38:55,112 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:38:55,210 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:38:55,211 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:38:55,211 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:38:55,683 - backend_api_client - INFO - Successfully saved channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:38:55,683 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-23 23:38:55,683 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:38:55,848 - retry_handler - WARNING - Attempt 1 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 1.0 seconds...
+2026-04-23 23:38:56,984 - retry_handler - WARNING - Attempt 2 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 2.0 seconds...
+2026-04-23 23:38:59,136 - retry_handler - WARNING - Attempt 3 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 4.0 seconds...
+2026-04-23 23:39:03,249 - backend_api_client - ERROR - Failed to save exercises after retries: Failed after 3 retry attempts: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}
+2026-04-23 23:39:03,249 - __main__ - ERROR - Retry exhausted: Failed after 3 retry attempts: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}
+2026-04-23 23:39:03,250 - __main__ - WARNING - API integration failed, but transcript was downloaded successfully
+2026-04-23 23:39:03,250 - __main__ - INFO - Total processing time: 10.85 seconds
+2026-04-23 23:42:38,654 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:42:38,655 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:42:40,562 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:42:40,565 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:42:40,569 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:42:40,577 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:42:40,577 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:42:41,257 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:42:41,257 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:42:41,257 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:42:41,355 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:42:41,356 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:42:41,356 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:42:41,802 - backend_api_client - INFO - Successfully saved channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:42:41,803 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-23 23:42:41,803 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:42:41,946 - retry_handler - WARNING - Attempt 1 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 1.0 seconds...
+2026-04-23 23:42:43,086 - retry_handler - WARNING - Attempt 2 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 2.0 seconds...
+2026-04-23 23:42:45,230 - retry_handler - WARNING - Attempt 3 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 4.0 seconds...
+2026-04-23 23:43:05,391 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:43:05,392 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:43:07,385 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:43:07,387 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:43:07,392 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:43:07,400 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:43:07,401 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:43:08,085 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:43:08,086 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:43:08,086 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:43:08,182 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:43:08,182 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:43:08,183 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:43:08,198 - backend_api_client - INFO - Successfully saved channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:43:08,198 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-23 23:43:08,199 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:43:08,319 - retry_handler - WARNING - Attempt 1 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 1.0 seconds...
+2026-04-23 23:43:09,431 - retry_handler - WARNING - Attempt 2 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 2.0 seconds...
+2026-04-23 23:43:11,533 - retry_handler - WARNING - Attempt 3 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 4.0 seconds...
+2026-04-23 23:43:15,636 - backend_api_client - ERROR - Failed to save exercises after retries: Failed after 3 retry attempts: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}
+2026-04-23 23:43:15,636 - __main__ - ERROR - Retry exhausted: Failed after 3 retry attempts: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}
+2026-04-23 23:43:15,637 - __main__ - WARNING - API integration failed, but transcript was downloaded successfully
+2026-04-23 23:43:15,638 - __main__ - INFO - Total processing time: 10.25 seconds
+2026-04-23 23:46:08,802 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:46:08,803 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:46:10,690 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:46:10,693 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:46:10,698 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:46:10,704 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:46:10,705 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:46:11,386 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:46:11,387 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:46:11,387 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:46:11,487 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:46:11,487 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:46:11,488 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:46:11,953 - backend_api_client - INFO - Successfully saved channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:46:11,953 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-23 23:46:11,954 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:46:12,092 - retry_handler - WARNING - Attempt 1 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 1.0 seconds...
+2026-04-23 23:46:13,219 - retry_handler - WARNING - Attempt 2 failed: HTTP 500: {"error":"Internal server error: Handler dispatch failed: java.lang.StackOverflowError"}. Retrying in 2.0 seconds...
+2026-04-23 23:55:42,747 - __main__ - INFO - Processing video: D1R-jKKp3NA
+2026-04-23 23:55:42,747 - __main__ - INFO - Starting transcript download for video_id: D1R-jKKp3NA
+2026-04-23 23:55:44,639 - __main__ - INFO - Successfully downloaded 335 transcript segments
+2026-04-23 23:55:44,641 - __main__ - INFO - Initializing API integration components
+2026-04-23 23:55:44,646 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-23 23:55:44,654 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-23 23:55:44,654 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: D1R-jKKp3NA
+2026-04-23 23:55:45,336 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Steve Jobs Stanford Commencement Speech 2005
+2026-04-23 23:55:45,337 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-23 23:55:45,337 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:55:45,431 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: JoshuaG
+2026-04-23 23:55:45,432 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-23 23:55:45,432 - backend_api_client - INFO - Saving channel: JoshuaG
+2026-04-23 23:55:45,887 - backend_api_client - INFO - Successfully saved channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:55:45,888 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-23 23:55:45,889 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCfpfBShvR0rjIN5VgnctG8Q
+2026-04-23 23:55:46,013 - backend_api_client - INFO - Successfully saved 1 exercise(s)
+2026-04-23 23:55:46,014 - __main__ - INFO - Step 5: Saving module data to backend
+2026-04-23 23:55:46,014 - backend_api_client - INFO - Saving 335 module(s) for video: D1R-jKKp3NA
+2026-04-23 23:55:47,170 - backend_api_client - INFO - Successfully saved 335 module(s)
+2026-04-23 23:55:47,171 - __main__ - INFO - Successfully saved all data to backend in 2.53 seconds
+2026-04-23 23:55:47,172 - __main__ - INFO - Total processing time: 4.42 seconds

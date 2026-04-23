@@ -1,8 +1,15 @@
 package com.example.belearnenglish.dto;
 
-public record VocabularyResponse(
-        int totalWords,
-        int learned,
-        int reviewing,
-        double accuracy
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class VocabularyResponse {
+    private int totalWords;
+    private int learned;
+    private int reviewing;
+    private double accuracy;
+}

@@ -20,6 +20,6 @@ public class VocabularyController {
     public ResponseEntity<VocabularyResponse> getVocabularyData() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         JwtClaims claims = (JwtClaims) auth.getPrincipal();
-        return ResponseEntity.ok(vocabularyService.getVocabularyData(claims.userId()));
+        return ResponseEntity.ok(vocabularyService.getVocabularyData(claims.getUserId()));
     }
 }

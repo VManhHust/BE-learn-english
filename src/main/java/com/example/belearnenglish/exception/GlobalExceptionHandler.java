@@ -1,6 +1,7 @@
 package com.example.belearnenglish.exception;
 
 import com.example.belearnenglish.dto.ErrorResponse;
+import com.example.belearnenglish.exception.youtube.*;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,34 @@ public class GlobalExceptionHandler {
         log.warn("ResponseStatusException: status={}, reason={}", ex.getStatusCode(), ex.getReason());
         return ResponseEntity.status(ex.getStatusCode())
                 .body(new ErrorResponse(ex.getReason()));
+    }
+
+    @ExceptionHandler(InvalidYoutubeUrlException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUrl(InvalidYoutubeUrlException ex) {
+        log.warn("Invalid YouTube URL: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(VideoNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleVideoNotFound(VideoNotFoundException ex) {
+        log.warn("Video not found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NoSubtitlesAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleNoSubtitles(NoSubtitlesAvailableException ex) {
+        log.warn("No subtitles available: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(YoutubeServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailable(YoutubeServiceUnavailableException ex) {
+        log.error("YouTube service unavailable", ex);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

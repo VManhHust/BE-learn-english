@@ -93,18 +93,18 @@ public class AuthController {
         }
         try {
             GoogleOAuthService.GoogleUserInfo userInfo = googleOAuthService.exchangeCodeForUserInfo(code);
-            User user = userRepository.findByEmail(userInfo.email())
+            User user = userRepository.findByEmail(userInfo.getEmail())
                     .orElseGet(() -> {
                         User newUser = User.builder()
-                                .email(userInfo.email())
-                                .displayName(userInfo.name())
-                                .googleId(userInfo.googleId())
+                                .email(userInfo.getEmail())
+                                .displayName(userInfo.getName())
+                                .googleId(userInfo.getGoogleId())
                                 .build();
                         return userRepository.save(newUser);
                     });
             TokenPair tokenPair = authService.generateTokenPair(user);
-            response.sendRedirect(frontendUrl + "/auth/callback?accessToken=" + tokenPair.accessToken()
-                    + "&refreshToken=" + tokenPair.refreshToken());
+            response.sendRedirect(frontendUrl + "/auth/callback?accessToken=" + tokenPair.getAccessToken()
+                    + "&refreshToken=" + tokenPair.getRefreshToken());
         } catch (Exception e) {
             response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
         }

@@ -1,7 +1,14 @@
 package com.example.belearnenglish.dto;
 
-public record CreateRoomRequest(
-        String roomName,
-        int maxMembers,
-        boolean isPublic
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateRoomRequest {
+    private String roomName;
+    private int maxMembers;
+    private boolean isPublic;
+}

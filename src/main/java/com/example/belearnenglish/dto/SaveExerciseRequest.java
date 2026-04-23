@@ -1,9 +1,16 @@
 package com.example.belearnenglish.dto;
 
-public record SaveExerciseRequest(
-        String videoId,
-        String title,
-        String thumbnailUrl,
-        Integer durationSeconds,
-        String vocabularyLevel
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SaveExerciseRequest {
+    private String videoId;
+    private String title;
+    private String thumbnailUrl;
+    private Integer durationSeconds;
+    private String vocabularyLevel;
+}

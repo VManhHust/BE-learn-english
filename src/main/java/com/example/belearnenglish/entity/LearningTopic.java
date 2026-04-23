@@ -1,5 +1,6 @@
 package com.example.belearnenglish.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -34,5 +35,6 @@ public class LearningTopic {
 
     @OneToMany(mappedBy = "learningTopic", cascade = CascadeType.PERSIST)
     @Builder.Default
+    @JsonIgnore
     private Set<LearningExercise> exercises = new HashSet<>();
 }

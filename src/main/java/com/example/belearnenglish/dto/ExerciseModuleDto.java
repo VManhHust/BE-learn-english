@@ -1,8 +1,15 @@
 package com.example.belearnenglish.dto;
 
-public record ExerciseModuleDto(
-        Long id,
-        Integer timeStartMs,
-        Integer timeEndMs,
-        String content
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExerciseModuleDto {
+    private Long id;
+    private Integer timeStartMs;
+    private Integer timeEndMs;
+    private String content;
+}

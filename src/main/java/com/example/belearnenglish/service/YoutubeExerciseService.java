@@ -45,12 +45,12 @@ public class YoutubeExerciseService {
 
     @Transactional
     public YoutubeChannelDto saveChannel(YoutubeChannelDto dto) {
-        YoutubeChannel channel = channelRepository.findByChannelYoutubeId(dto.channelYoutubeId())
-                .orElse(YoutubeChannel.builder().channelYoutubeId(dto.channelYoutubeId()).build());
-        channel.setChannelName(dto.channelName());
-        channel.setChannelImgUrl(dto.channelImgUrl());
-        channel.setChannelDescription(dto.channelDescription());
-        channel.setSubscriberCount(dto.subscriberCount());
+        YoutubeChannel channel = channelRepository.findByChannelYoutubeId(dto.getChannelYoutubeId())
+                .orElse(YoutubeChannel.builder().channelYoutubeId(dto.getChannelYoutubeId()).build());
+        channel.setChannelName(dto.getChannelName());
+        channel.setChannelImgUrl(dto.getChannelImgUrl());
+        channel.setChannelDescription(dto.getChannelDescription());
+        channel.setSubscriberCount(dto.getSubscriberCount());
         return toChannelDto(channelRepository.save(channel));
     }
 
@@ -75,32 +75,32 @@ public class YoutubeExerciseService {
 
         requests.forEach(req -> {
             Optional<YoutubeExerciseExtension> existing = extensions.stream()
-                    .filter(e -> e.getVideoId().equals(req.videoId())).findFirst();
+                    .filter(e -> e.getVideoId().equals(req.getVideoId())).findFirst();
             if (existing.isPresent()) {
                 YoutubeExerciseExtension ext = existing.get();
-                ext.setThumbnailUrl(req.thumbnailUrl());
-                ext.setDurationSeconds(req.durationSeconds());
-                ext.getLearningExercise().setTitle(req.title());
-                ext.getLearningExercise().setVocabularyLevel(req.vocabularyLevel());
-                log.info("Updated exercise for videoId {}", req.videoId());
+                ext.setThumbnailUrl(req.getThumbnailUrl());
+                ext.setDurationSeconds(req.getDurationSeconds());
+                ext.getLearningExercise().setTitle(req.getTitle());
+                ext.getLearningExercise().setVocabularyLevel(req.getVocabularyLevel());
+                log.info("Updated exercise for videoId {}", req.getVideoId());
             } else {
                 LearningExercise exercise = LearningExercise.builder()
-                        .uuid(req.videoId())
+                        .uuid(req.getVideoId())
                         .type(LearningExerciseType.YOUTUBE_VIDEO)
-                        .title(req.title())
-                        .vocabularyLevel(req.vocabularyLevel())
+                        .title(req.getTitle())
+                        .vocabularyLevel(req.getVocabularyLevel())
                         .moduleCount(0)
                         .learningTopic(topic)
                         .build();
                 YoutubeExerciseExtension ext = YoutubeExerciseExtension.builder()
-                        .videoId(req.videoId())
-                        .thumbnailUrl(req.thumbnailUrl())
-                        .durationSeconds(req.durationSeconds())
+                        .videoId(req.getVideoId())
+                        .thumbnailUrl(req.getThumbnailUrl())
+                        .durationSeconds(req.getDurationSeconds())
                         .youtubeChannel(channel)
                         .learningExercise(exercise)
                         .build();
                 extensions.add(ext);
-                log.info("Created new exercise for videoId {}", req.videoId());
+                log.info("Created new exercise for videoId {}", req.getVideoId());
             }
         });
     }
@@ -124,9 +124,9 @@ public class YoutubeExerciseService {
 
         requests.forEach(req -> {
             YoutubeModuleExtension moduleExt = YoutubeModuleExtension.builder()
-                    .timeStartMs(req.timeStartMs())
-                    .timeEndMs(req.timeEndMs())
-                    .correctAnswer(req.content())
+                    .timeStartMs(req.getTimeStartMs())
+                    .timeEndMs(req.getTimeEndMs())
+                    .correctAnswer(req.getContent())
                     .build();
             ExerciseModule module = ExerciseModule.builder()
                     .type(ExerciseModuleType.YOUTUBE)

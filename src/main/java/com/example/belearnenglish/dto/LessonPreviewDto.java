@@ -1,15 +1,22 @@
 package com.example.belearnenglish.dto;
 
-public record LessonPreviewDto(
-        Long id,
-        String title,
-        String thumbnail,
-        String duration,
-        String level,
-        long viewCount,
-        String source,
-        boolean hasDictation,
-        boolean hasShadowing,
-        String youtubeId,
-        String youtubeUrl
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class LessonPreviewDto {
+    private Long id;
+    private String title;
+    private String thumbnail;
+    private String duration;
+    private String level;
+    private long viewCount;
+    private String source;
+    private boolean hasDictation;
+    private boolean hasShadowing;
+    private String youtubeId;
+    private String youtubeUrl;
+}

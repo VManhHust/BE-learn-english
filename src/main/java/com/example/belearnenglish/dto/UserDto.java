@@ -1,3 +1,15 @@
 package com.example.belearnenglish.dto;
 
-public record UserDto(Long id, String email, String displayName, String role) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDto {
+    private Long id;
+    private String email;
+    private String displayName;
+    private String role;
+}

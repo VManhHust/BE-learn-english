@@ -23,7 +23,7 @@ public class SpeakingController {
     @GetMapping
     public ResponseEntity<SpeakingResponse> getSpeakingData() {
         JwtClaims claims = (JwtClaims) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(speakingService.getSpeakingData(claims.userId()));
+        return ResponseEntity.ok(speakingService.getSpeakingData(claims.getUserId()));
     }
 
     @GetMapping("/rooms")
@@ -34,8 +34,8 @@ public class SpeakingController {
     @PostMapping("/rooms")
     public ResponseEntity<RoomDto> createRoom(@RequestBody CreateRoomRequest request) {
         JwtClaims claims = (JwtClaims) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        RoomDto room = speakingService.createRoom(claims.userId(), request.roomName(),
-                request.maxMembers(), request.isPublic());
+        RoomDto room = speakingService.createRoom(claims.getUserId(), request.getRoomName(),
+                request.getMaxMembers(), request.isPublic());
         return ResponseEntity.status(HttpStatus.CREATED).body(room);
     }
 }

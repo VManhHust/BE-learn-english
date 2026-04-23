@@ -1,5 +1,7 @@
 package com.example.belearnenglish.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -8,10 +10,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "learning_exercise")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"learningTopic", "youtubeExerciseExtension", "exerciseModules"})
+@EqualsAndHashCode(exclude = {"learningTopic", "youtubeExerciseExtension", "exerciseModules"})
 public class LearningExercise {
 
     @Id
@@ -37,13 +42,16 @@ public class LearningExercise {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id", nullable = false)
+    @JsonIgnore
     private LearningTopic learningTopic;
 
     @OneToOne(mappedBy = "learningExercise", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonBackReference
     private YoutubeExerciseExtension youtubeExerciseExtension;
 
     @OneToMany(mappedBy = "learningExercise", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonIgnore
     private Set<ExerciseModule> exerciseModules = new HashSet<>();
 
     @Builder.Default

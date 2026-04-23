@@ -43,34 +43,34 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponse register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.email()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use");
         }
         User user = User.builder()
-                .email(request.email())
-                .passwordHash(passwordEncoder.encode(request.password()))
-                .displayName(request.displayName() != null ? request.displayName() : request.email())
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getEmail())
                 .build();
         user = userRepository.save(user);
         TokenPair tokenPair = generateTokenPair(user);
         UserDto userDto = new UserDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getRole().name());
-        return new LoginResponse(tokenPair.accessToken(), tokenPair.refreshToken(), userDto);
+        return new LoginResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), userDto);
     }
 
     @Override
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Email hoặc mật khẩu không đúng"));
 
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Email hoặc mật khẩu không đúng");
         }
 
         TokenPair tokenPair = generateTokenPair(user);
 
         UserDto userDto = new UserDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getRole().name());
-        return new LoginResponse(tokenPair.accessToken(), tokenPair.refreshToken(), userDto);
+        return new LoginResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), userDto);
     }
 
     @Override

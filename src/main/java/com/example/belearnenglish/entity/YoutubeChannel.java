@@ -1,5 +1,6 @@
 package com.example.belearnenglish.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -8,10 +9,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "youtube_channels")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "extensions")
+@EqualsAndHashCode(exclude = "extensions")
 public class YoutubeChannel {
 
     @Id
@@ -39,5 +43,6 @@ public class YoutubeChannel {
 
     @OneToMany(mappedBy = "youtubeChannel", cascade = CascadeType.PERSIST)
     @Builder.Default
+    @JsonManagedReference
     private Set<YoutubeExerciseExtension> extensions = new HashSet<>();
 }

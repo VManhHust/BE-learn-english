@@ -63,8 +63,8 @@ public class AdminLessonService {
     public List<LearningExerciseDto> batchImport(Long topicId, String channelYoutubeId,
                                                   List<SaveExerciseRequest> requests) {
         return requests.stream()
-                .map(r -> importLesson(topicId, "https://www.youtube.com/watch?v=" + r.videoId(),
-                        r.title(), r.vocabularyLevel(), channelYoutubeId))
+                .map(r -> importLesson(topicId, "https://www.youtube.com/watch?v=" + r.getVideoId(),
+                        r.getTitle(), r.getVocabularyLevel(), channelYoutubeId))
                 .toList();
     }
 

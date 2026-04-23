@@ -1,3 +1,13 @@
 package com.example.belearnenglish.dto;
 
-public record RateLimitErrorResponse(String error, int retryAfter) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class RateLimitErrorResponse {
+    private String error;
+    private int retryAfter;
+}

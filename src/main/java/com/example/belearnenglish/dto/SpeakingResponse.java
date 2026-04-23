@@ -1,8 +1,15 @@
 package com.example.belearnenglish.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record SpeakingResponse(
-        int totalSessions,
-        List<RoomDto> recentRooms
-) {}
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SpeakingResponse {
+    private int totalSessions;
+    private List<RoomDto> recentRooms;
+}
