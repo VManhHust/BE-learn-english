@@ -163,6 +163,6 @@ public class YoutubeExerciseService {
 
     private ExerciseModuleDto toModuleDto(ExerciseModule m) {
         YoutubeModuleExtension ext = m.getYoutubeModuleExtension();
-        return new ExerciseModuleDto(m.getId(), ext.getTimeStartMs(), ext.getTimeEndMs(), ext.getCorrectAnswer());
+        return new ExerciseModuleDto(m.getId(), ext.getTimeStartMs(), ext.getTimeEndMs(), ext.getCorrectAnswer(), ext.getVietnameseText());
     }
 }

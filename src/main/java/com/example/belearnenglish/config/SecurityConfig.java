@@ -59,7 +59,8 @@ public class SecurityConfig {
                     "/api/lessons/**",
                     "/api/admin/**",
                     "/api/v1/youtube/transcript/**",
-                    "/api/v1/topic/youtube/**"
+                    "/api/v1/topic/youtube/**",
+                    "/api/v1/transcript/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

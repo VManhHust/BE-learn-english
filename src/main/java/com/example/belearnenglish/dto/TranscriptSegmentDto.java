@@ -1,16 +1,18 @@
 package com.example.belearnenglish.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExerciseModuleDto {
+public class TranscriptSegmentDto {
     private Long id;
-    private Integer timeStartMs;
-    private Integer timeEndMs;
-    private String content;
+    private Integer startTimeMs;
+    private Integer endTimeMs;
+    private String text;
     private String vietnameseText;
 }

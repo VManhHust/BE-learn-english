@@ -23,4 +23,7 @@ public class YoutubeModuleExtension {
 
     @Column(name = "correct_answer", columnDefinition = "TEXT", nullable = false)
     private String correctAnswer;
+
+    @Column(name = "vietnamese_text", columnDefinition = "TEXT")
+    private String vietnameseText;
 }

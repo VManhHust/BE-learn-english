@@ -163,3 +163,25 @@
 2026-04-23 23:55:47,170 - backend_api_client - INFO - Successfully saved 335 module(s)
 2026-04-23 23:55:47,171 - __main__ - INFO - Successfully saved all data to backend in 2.53 seconds
 2026-04-23 23:55:47,172 - __main__ - INFO - Total processing time: 4.42 seconds
+2026-04-26 11:46:03,192 - __main__ - INFO - Processing video: PssKpzB0Ah0
+2026-04-26 11:46:03,192 - __main__ - INFO - Starting transcript download for video_id: PssKpzB0Ah0
+2026-04-26 11:46:05,567 - __main__ - INFO - Successfully downloaded 23 transcript segments
+2026-04-26 11:46:05,571 - __main__ - INFO - Initializing API integration components
+2026-04-26 11:46:05,578 - googleapiclient.discovery_cache - INFO - file_cache is only supported with oauth2client<4.0.0
+2026-04-26 11:46:05,610 - __main__ - INFO - Step 1: Fetching video metadata from YouTube
+2026-04-26 11:46:05,610 - youtube_metadata_fetcher - INFO - Fetching video metadata for video_id: PssKpzB0Ah0
+2026-04-26 11:46:06,224 - youtube_metadata_fetcher - INFO - Successfully fetched video metadata: Stranger Things 5 | Official Trailer | Netflix
+2026-04-26 11:46:06,225 - __main__ - INFO - Step 2: Fetching channel metadata from YouTube
+2026-04-26 11:46:06,226 - youtube_metadata_fetcher - INFO - Fetching channel metadata for channel_id: UCWOA1ZGywLbqmigxE4Qlvuw
+2026-04-26 11:46:06,322 - youtube_metadata_fetcher - INFO - Successfully fetched channel metadata: Netflix
+2026-04-26 11:46:06,323 - __main__ - INFO - Step 3: Saving channel data to backend
+2026-04-26 11:46:06,323 - backend_api_client - INFO - Saving channel: Netflix
+2026-04-26 11:46:06,397 - backend_api_client - INFO - Successfully saved channel: UCWOA1ZGywLbqmigxE4Qlvuw
+2026-04-26 11:46:06,398 - __main__ - INFO - Step 4: Saving exercise data to backend
+2026-04-26 11:46:06,398 - backend_api_client - INFO - Saving 1 exercise(s) for channel: UCWOA1ZGywLbqmigxE4Qlvuw
+2026-04-26 11:46:06,448 - backend_api_client - INFO - Successfully saved 1 exercise(s)
+2026-04-26 11:46:06,449 - __main__ - INFO - Step 5: Saving module data to backend
+2026-04-26 11:46:06,449 - backend_api_client - INFO - Saving 23 module(s) for video: PssKpzB0Ah0
+2026-04-26 11:46:06,548 - backend_api_client - INFO - Successfully saved 23 module(s)
+2026-04-26 11:46:06,548 - __main__ - INFO - Successfully saved all data to backend in 0.98 seconds
+2026-04-26 11:46:06,549 - __main__ - INFO - Total processing time: 3.36 seconds
