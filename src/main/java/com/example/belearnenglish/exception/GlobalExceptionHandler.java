@@ -2,6 +2,8 @@ package com.example.belearnenglish.exception;
 
 import com.example.belearnenglish.dto.ErrorResponse;
 import com.example.belearnenglish.exception.youtube.*;
+import com.example.belearnenglish.exception.DuplicateVocabularyException;
+import com.example.belearnenglish.exception.ForbiddenResourceException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -102,6 +104,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConcurrentUpdate(ConcurrentUpdateException ex) {
         log.warn("Concurrent update conflict: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateVocabularyException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateVocabulary(DuplicateVocabularyException ex) {
+        log.warn("Duplicate vocabulary: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ForbiddenResourceException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenResource(ForbiddenResourceException ex) {
+        log.warn("Forbidden resource access: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse(ex.getMessage()));
     }
 
