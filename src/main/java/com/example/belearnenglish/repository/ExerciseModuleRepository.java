@@ -18,4 +18,7 @@ public interface ExerciseModuleRepository extends JpaRepository<ExerciseModule, 
 
     @Query("SELECT m.id FROM ExerciseModule m JOIN m.youtubeModuleExtension ext WHERE m.learningExercise.id = :exerciseId ORDER BY ext.timeStartMs ASC")
     List<Long> findIdsByExerciseId(Long exerciseId);
+
+    @Query("SELECT m FROM ExerciseModule m JOIN FETCH m.learningExercise WHERE m.youtubeModuleExtension.id = :youtubeModuleExtensionId")
+    java.util.Optional<ExerciseModule> findByYoutubeModuleExtensionId(Long youtubeModuleExtensionId);
 }
