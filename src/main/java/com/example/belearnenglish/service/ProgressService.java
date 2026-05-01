@@ -86,15 +86,15 @@ public class ProgressService {
         progress.setUserInputs(request.getUserInputs() != null ? request.getUserInputs() : new HashMap<>());
         progress.setUpdatedAt(Instant.now());
         
-        // Calculate completion percentage based on actual submitted segments
+        // Calculate completion percentage based on segments with isGood = true (accuracy >= 80%)
         // Use totalSegments from request if provided, otherwise fall back to segmentResults.size()
         int totalSegments = (request.getTotalSegments() != null && request.getTotalSegments() > 0)
                 ? request.getTotalSegments()
                 : request.getSegmentResults().size();
-        int completedSegments = (int) request.getSegmentResults().values().stream()
-                .filter(result -> Boolean.TRUE.equals(result.getChecked()))
+        int goodSegments = (int) request.getSegmentResults().values().stream()
+                .filter(result -> Boolean.TRUE.equals(result.getIsGood()))
                 .count();
-        int completionPercentage = totalSegments > 0 ? (completedSegments * 100) / totalSegments : 0;
+        int completionPercentage = totalSegments > 0 ? (goodSegments * 100) / totalSegments : 0;
         
         progress.setCompletionPercentage(completionPercentage);
         
@@ -243,6 +243,8 @@ public class ProgressService {
                 segmentMap.put("skipped", value.getSkipped());
                 segmentMap.put("accuracy", value.getAccuracy());
                 segmentMap.put("isGood", value.getIsGood());
+                segmentMap.put("attemptCount", value.getAttemptCount());
+                segmentMap.put("errorCount", value.getErrorCount());
                 result.put(key, segmentMap);
             });
         }
@@ -268,6 +270,8 @@ public class ProgressService {
                             .skipped(getBooleanValue(segmentMap.get("skipped")))
                             .accuracy(getIntegerValue(segmentMap.get("accuracy")))
                             .isGood(getBooleanValue(segmentMap.get("isGood")))
+                            .attemptCount(getIntegerValue(segmentMap.get("attemptCount")))
+                            .errorCount(getIntegerValue(segmentMap.get("errorCount")))
                             .build();
                     result.put(key, segmentResult);
                 }

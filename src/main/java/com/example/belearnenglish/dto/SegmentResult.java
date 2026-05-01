@@ -38,4 +38,14 @@ public class SegmentResult {
      * Whether the segment result is considered "good" (meets quality threshold).
      */
     private Boolean isGood;
+    
+    /**
+     * Total number of attempts (checks) for this segment.
+     */
+    private Integer attemptCount;
+    
+    /**
+     * Number of failed attempts (accuracy < 80%) for this segment.
+     */
+    private Integer errorCount;
 }
