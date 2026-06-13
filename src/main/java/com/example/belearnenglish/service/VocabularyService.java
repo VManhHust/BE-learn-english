@@ -76,7 +76,7 @@ public class VocabularyService {
                 d.learner_count,
                 COUNT(DISTINCT t.id)::int AS topic_count,
                 COUNT(DISTINCT w.id)::int AS word_count,
-                COUNT(DISTINCT CASE WHEN p.status IN ('GOOD', 'EASY', 'MASTERED') THEN w.id END)::int AS learned_words
+                COUNT(DISTINCT CASE WHEN p.word_id IS NOT NULL THEN w.id END)::int AS learned_words
             FROM vocabulary_deck d
             LEFT JOIN vocabulary_topic t ON t.deck_id = d.id
             LEFT JOIN vocabulary_word w ON w.topic_id = t.id
@@ -135,9 +135,11 @@ public class VocabularyService {
             ? Math.min(activeTopic.currentWordIndex() + 1, activeTopic.totalWords())
             : Math.max(1, Math.min(cardNumber, activeTopic.totalWords()));
         WordCardDto currentCard = cardNumber == null
-            ? findCurrentCard(userId, activeTopic.id(), activeTopic.currentWordIndex())
+            ? findCurrentCard(userId, activeTopic.id())
             : findCardAtPosition(userId, activeTopic.id(), resolvedCardNumber - 1);
-        resolvedCardNumber = currentCard == null ? 0 : resolvedCardNumber;
+        resolvedCardNumber = currentCard == null
+            ? (activeTopic.completed() ? activeTopic.totalWords() : 0)
+            : resolvedCardNumber;
         int totalDeckWords = topics.stream().mapToInt(TopicProgressDto::totalWords).sum();
         int learnedDeckWords = topics.stream().mapToInt(TopicProgressDto::learnedWords).sum();
 
@@ -196,6 +198,28 @@ public class VocabularyService {
         return getDeckDetail(userId, context.deckSlug(), context.topicSlug());
     }
 
+    @Transactional
+    public VocabularyDeckDetailResponse resetTopicProgress(Long userId, Long topicId) {
+        TopicContext context = findTopicContext(topicId);
+
+        jdbcTemplate.update(
+            """
+            DELETE FROM user_vocabulary_word_progress
+            WHERE user_id = ?
+              AND word_id IN (SELECT id FROM vocabulary_word WHERE topic_id = ?)
+            """,
+            userId,
+            topicId
+        );
+        jdbcTemplate.update(
+            "DELETE FROM user_vocabulary_topic_progress WHERE user_id = ? AND topic_id = ?",
+            userId,
+            topicId
+        );
+
+        return getDeckDetail(userId, context.deckSlug(), context.topicSlug());
+    }
+
     private DeckDetailDto findDeck(String deckSlug) {
         List<DeckDetailDto> decks = jdbcTemplate.query(
             """
@@ -226,16 +250,16 @@ public class VocabularyService {
             SELECT
                 t.id, t.slug, t.title, t.description, t.thumbnail_url, t.sort_order,
                 COUNT(w.id)::int AS total_words,
-                COALESCE(p.learned_words, 0) AS learned_words,
-                COALESCE(p.current_word_index, 0) AS current_word_index,
-                COALESCE(p.completion_percentage, 0) AS completion_percentage,
-                COALESCE(p.is_completed, FALSE) AS is_completed
+                COUNT(wp.word_id)::int AS learned_words,
+                COUNT(CASE WHEN wp.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END)::int AS mastered_words,
+                COUNT(wp.word_id)::int AS current_word_index,
+                COALESCE(ROUND(100.0 * COUNT(wp.word_id) / NULLIF(COUNT(w.id), 0)), 0)::int AS completion_percentage,
+                COUNT(w.id) > 0 AND COUNT(wp.word_id) = COUNT(w.id) AS is_completed
             FROM vocabulary_topic t
             LEFT JOIN vocabulary_word w ON w.topic_id = t.id
-            LEFT JOIN user_vocabulary_topic_progress p ON p.topic_id = t.id AND p.user_id = ?
+            LEFT JOIN user_vocabulary_word_progress wp ON wp.word_id = w.id AND wp.user_id = ?
             WHERE t.deck_id = ?
-            GROUP BY t.id, t.slug, t.title, t.description, t.thumbnail_url, t.sort_order,
-                     p.learned_words, p.current_word_index, p.completion_percentage, p.is_completed
+            GROUP BY t.id, t.slug, t.title, t.description, t.thumbnail_url, t.sort_order
             ORDER BY t.sort_order, t.id
             """,
             (rs, rowNum) -> new TopicProgressDto(
@@ -247,6 +271,7 @@ public class VocabularyService {
                 rs.getInt("sort_order"),
                 rs.getInt("total_words"),
                 rs.getInt("learned_words"),
+                rs.getInt("mastered_words"),
                 rs.getInt("current_word_index"),
                 rs.getInt("completion_percentage"),
                 rs.getBoolean("is_completed")
@@ -256,7 +281,7 @@ public class VocabularyService {
         );
     }
 
-    private WordCardDto findCurrentCard(Long userId, Long topicId, int currentWordIndex) {
+    private WordCardDto findCurrentCard(Long userId, Long topicId) {
         List<WordCardDto> cards = jdbcTemplate.query(
             """
             SELECT
@@ -266,17 +291,13 @@ public class VocabularyService {
                 COALESCE(p.status, 'NEW') AS learning_status
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
-            WHERE w.topic_id = ?
-            ORDER BY
-                CASE WHEN COALESCE(p.status, 'NEW') IN ('GOOD', 'EASY', 'MASTERED') THEN 1 ELSE 0 END,
-                w.sort_order,
-                w.id
-            LIMIT 1 OFFSET ?
+            WHERE w.topic_id = ? AND p.word_id IS NULL
+            ORDER BY w.sort_order, w.id
+            LIMIT 1
             """,
             this::mapWordCard,
             userId,
-            topicId,
-            Math.max(currentWordIndex, 0)
+            topicId
         );
         return cards.isEmpty() ? null : cards.getFirst();
     }
@@ -339,6 +360,26 @@ public class VocabularyService {
         return contexts.getFirst();
     }
 
+    private TopicContext findTopicContext(Long topicId) {
+        List<TopicContext> contexts = jdbcTemplate.query(
+            """
+            SELECT d.slug AS deck_slug, t.slug AS topic_slug
+            FROM vocabulary_topic t
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            WHERE t.id = ? AND d.status = 'PUBLISHED'
+            """,
+            (rs, rowNum) -> new TopicContext(
+                rs.getString("deck_slug"),
+                rs.getString("topic_slug")
+            ),
+            topicId
+        );
+        if (contexts.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy nhóm từ vựng");
+        }
+        return contexts.getFirst();
+    }
+
     private void refreshTopicProgress(Long userId, Long topicId) {
         jdbcTemplate.update(
             """
@@ -347,12 +388,12 @@ public class VocabularyService {
             SELECT
                 ?,
                 ?,
-                COUNT(CASE WHEN p.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END)::int,
-                COUNT(CASE WHEN p.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END)::int,
-                COALESCE(ROUND(100.0 * COUNT(CASE WHEN p.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END) / NULLIF(COUNT(w.id), 0)), 0)::int,
-                COUNT(w.id) > 0 AND COUNT(CASE WHEN p.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END) = COUNT(w.id),
+                COUNT(p.word_id)::int,
+                COUNT(p.word_id)::int,
+                COALESCE(ROUND(100.0 * COUNT(p.word_id) / NULLIF(COUNT(w.id), 0)), 0)::int,
+                COUNT(w.id) > 0 AND COUNT(p.word_id) = COUNT(w.id),
                 CASE
-                    WHEN COUNT(w.id) > 0 AND COUNT(CASE WHEN p.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END) = COUNT(w.id)
+                    WHEN COUNT(w.id) > 0 AND COUNT(p.word_id) = COUNT(w.id)
                     THEN NOW()
                     ELSE NULL
                 END,
@@ -434,5 +475,8 @@ public class VocabularyService {
     }
 
     private record ReviewContext(String deckSlug, String topicSlug, Long topicId) {
+    }
+
+    private record TopicContext(String deckSlug, String topicSlug) {
     }
 }

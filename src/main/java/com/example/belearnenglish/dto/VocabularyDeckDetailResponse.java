@@ -33,6 +33,7 @@ public record VocabularyDeckDetailResponse(
         int sortOrder,
         int totalWords,
         int learnedWords,
+        int masteredWords,
         int currentWordIndex,
         int completionPercentage,
         boolean completed
