@@ -8,6 +8,7 @@ import com.example.belearnenglish.dto.VocabularyDecksResponse;
 import com.example.belearnenglish.dto.VocabularyDecksResponse.VocabularyDeckCardDto;
 import com.example.belearnenglish.dto.VocabularyDecksResponse.VocabularyDeckCategoryDto;
 import com.example.belearnenglish.dto.VocabularyResponse;
+import com.example.belearnenglish.dto.VocabularyQuizOptionResponse;
 import com.example.belearnenglish.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -218,6 +219,27 @@ public class VocabularyService {
         );
 
         return getDeckDetail(userId, context.deckSlug(), context.topicSlug());
+    }
+
+    public List<VocabularyQuizOptionResponse> getQuizOptions(Long topicId, Long excludeWordId) {
+        findTopicContext(topicId);
+        return jdbcTemplate.query(
+            """
+            SELECT w.id, w.word
+            FROM vocabulary_word w
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            WHERE t.deck_id = (SELECT deck_id FROM vocabulary_topic WHERE id = ?)
+              AND w.id <> ?
+            ORDER BY RANDOM()
+            LIMIT 3
+            """,
+            (rs, rowNum) -> new VocabularyQuizOptionResponse(
+                rs.getLong("id"),
+                rs.getString("word")
+            ),
+            topicId,
+            excludeWordId
+        );
     }
 
     private DeckDetailDto findDeck(String deckSlug) {

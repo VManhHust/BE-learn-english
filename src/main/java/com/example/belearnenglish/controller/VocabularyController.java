@@ -4,6 +4,7 @@ import com.example.belearnenglish.dto.VocabularyDeckDetailResponse;
 import com.example.belearnenglish.dto.VocabularyDecksResponse;
 import com.example.belearnenglish.dto.VocabularyResponse;
 import com.example.belearnenglish.dto.VocabularyReviewRequest;
+import com.example.belearnenglish.dto.VocabularyQuizOptionResponse;
 import com.example.belearnenglish.security.JwtClaims;
 import com.example.belearnenglish.service.VocabularyService;
 import jakarta.validation.Valid;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/vocabulary")
@@ -57,6 +60,14 @@ public class VocabularyController {
     @DeleteMapping("/topics/{topicId}/progress")
     public ResponseEntity<VocabularyDeckDetailResponse> resetTopicProgress(@PathVariable Long topicId) {
         return ResponseEntity.ok(vocabularyService.resetTopicProgress(getUserId(), topicId));
+    }
+
+    @GetMapping("/topics/{topicId}/quiz-options")
+    public ResponseEntity<List<VocabularyQuizOptionResponse>> getQuizOptions(
+            @PathVariable Long topicId,
+            @RequestParam Long excludeWordId
+    ) {
+        return ResponseEntity.ok(vocabularyService.getQuizOptions(topicId, excludeWordId));
     }
 
     private Long getUserId() {
