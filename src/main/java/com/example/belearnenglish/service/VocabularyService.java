@@ -225,7 +225,7 @@ public class VocabularyService {
         findTopicContext(topicId);
         return jdbcTemplate.query(
             """
-            SELECT w.id, w.word
+            SELECT w.id, w.word, w.vietnamese_translation
             FROM vocabulary_word w
             JOIN vocabulary_topic t ON t.id = w.topic_id
             WHERE t.deck_id = (SELECT deck_id FROM vocabulary_topic WHERE id = ?)
@@ -235,7 +235,8 @@ public class VocabularyService {
             """,
             (rs, rowNum) -> new VocabularyQuizOptionResponse(
                 rs.getLong("id"),
-                rs.getString("word")
+                rs.getString("word"),
+                rs.getString("vietnamese_translation")
             ),
             topicId,
             excludeWordId
