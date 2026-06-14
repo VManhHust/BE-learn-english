@@ -70,6 +70,23 @@ public class VocabularyController {
         return ResponseEntity.ok(vocabularyService.getQuizOptions(topicId, excludeWordId));
     }
 
+    @GetMapping("/review")
+    public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getReviewWords() {
+        return ResponseEntity.ok(vocabularyService.getReviewWords(getUserId()));
+    }
+
+    @GetMapping("/words")
+    public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getWords() {
+        return ResponseEntity.ok(vocabularyService.getWords(getUserId()));
+    }
+
+    @GetMapping("/review/options")
+    public ResponseEntity<List<VocabularyQuizOptionResponse>> getReviewQuizOptions(
+            @RequestParam Long excludeWordId
+    ) {
+        return ResponseEntity.ok(vocabularyService.getReviewQuizOptions(excludeWordId));
+    }
+
     private Long getUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         JwtClaims claims = (JwtClaims) auth.getPrincipal();

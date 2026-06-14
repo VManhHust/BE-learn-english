@@ -32,40 +32,30 @@ public class VocabularyService {
     private final JdbcTemplate jdbcTemplate;
 
     public VocabularyResponse getVocabularyData(Long userId) {
-        Integer totalWords = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vocabulary_word", Integer.class);
-        Integer learned = jdbcTemplate.queryForObject(
+        return jdbcTemplate.queryForObject(
             """
-            SELECT COUNT(*)
-            FROM user_vocabulary_word_progress
-            WHERE user_id = ? AND status IN ('GOOD', 'EASY', 'MASTERED')
+            SELECT
+                COUNT(DISTINCT w.id)::int AS total_words,
+                COUNT(DISTINCT CASE
+                    WHEN p.status = 'MASTERED' THEN w.id
+                END)::int AS mastered,
+                COUNT(DISTINCT CASE
+                    WHEN p.status = 'NOT_MASTERED' THEN w.id
+                END)::int AS not_mastered,
+                COALESCE(SUM(p.review_count), 0)::int AS total_reviews
+            FROM vocabulary_word w
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id AND d.status = 'PUBLISHED'
+            LEFT JOIN user_vocabulary_word_progress p
+                ON p.word_id = w.id AND p.user_id = ?
             """,
-            Integer.class,
+            (rs, rowNum) -> new VocabularyResponse(
+                rs.getInt("total_words"),
+                rs.getInt("mastered"),
+                rs.getInt("not_mastered"),
+                rs.getInt("total_reviews")
+            ),
             userId
-        );
-        Integer reviewing = jdbcTemplate.queryForObject(
-            """
-            SELECT COUNT(*)
-            FROM user_vocabulary_word_progress
-            WHERE user_id = ? AND status IN ('AGAIN', 'HARD')
-            """,
-            Integer.class,
-            userId
-        );
-        BigDecimal accuracy = jdbcTemplate.queryForObject(
-            """
-            SELECT COALESCE(ROUND(100.0 * SUM(correct_count) / NULLIF(SUM(review_count), 0), 1), 0)
-            FROM user_vocabulary_word_progress
-            WHERE user_id = ?
-            """,
-            BigDecimal.class,
-            userId
-        );
-
-        return new VocabularyResponse(
-            valueOrZero(totalWords),
-            valueOrZero(learned),
-            valueOrZero(reviewing),
-            accuracy == null ? 0.0 : accuracy.doubleValue()
         );
     }
 
@@ -161,9 +151,9 @@ public class VocabularyService {
     public VocabularyDeckDetailResponse reviewWord(Long userId, Long wordId, String rating) {
         ReviewContext context = findReviewContext(wordId);
         String normalizedRating = normalizeRating(rating);
-        boolean correct = List.of("GOOD", "EASY", "MASTERED").contains(normalizedRating);
+        boolean correct = "MASTERED".equals(normalizedRating);
 
-        if (!List.of("AGAIN", "HARD", "GOOD", "EASY", "MASTERED").contains(normalizedRating)) {
+        if (!List.of("NOT_MASTERED", "MASTERED").contains(normalizedRating)) {
             throw new IllegalArgumentException("Rating không hợp lệ");
         }
 
@@ -225,7 +215,7 @@ public class VocabularyService {
         findTopicContext(topicId);
         return jdbcTemplate.query(
             """
-            SELECT w.id, w.word, w.vietnamese_translation
+            SELECT w.id, w.word, w.vietnamese_translation, w.english_definition
             FROM vocabulary_word w
             JOIN vocabulary_topic t ON t.id = w.topic_id
             WHERE t.deck_id = (SELECT deck_id FROM vocabulary_topic WHERE id = ?)
@@ -236,9 +226,74 @@ public class VocabularyService {
             (rs, rowNum) -> new VocabularyQuizOptionResponse(
                 rs.getLong("id"),
                 rs.getString("word"),
-                rs.getString("vietnamese_translation")
+                rs.getString("vietnamese_translation"),
+                rs.getString("english_definition")
             ),
             topicId,
+            excludeWordId
+        );
+    }
+
+    public List<WordCardDto> getReviewWords(Long userId) {
+        return jdbcTemplate.query(
+            """
+            SELECT
+                w.id, w.word, w.part_of_speech, w.ipa_us, w.ipa_uk, w.audio_us_url, w.audio_uk_url,
+                w.english_definition, w.vietnamese_definition, w.vietnamese_translation,
+                w.example_sentence, w.example_sentence_vi, w.image_url, w.sort_order,
+                p.status AS learning_status
+            FROM user_vocabulary_word_progress p
+            JOIN vocabulary_word w ON w.id = p.word_id
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            WHERE p.user_id = ?
+              AND p.status = 'NOT_MASTERED'
+              AND d.status = 'PUBLISHED'
+            ORDER BY p.updated_at, w.id
+            """,
+            this::mapWordCard,
+            userId
+        );
+    }
+
+    public List<WordCardDto> getWords(Long userId) {
+        return jdbcTemplate.query(
+            """
+            SELECT
+                w.id, w.word, w.part_of_speech, w.ipa_us, w.ipa_uk, w.audio_us_url, w.audio_uk_url,
+                w.english_definition, w.vietnamese_definition, w.vietnamese_translation,
+                w.example_sentence, w.example_sentence_vi, w.image_url, w.sort_order,
+                COALESCE(p.status, 'UNLEARNED') AS learning_status
+            FROM vocabulary_word w
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
+            WHERE d.status = 'PUBLISHED'
+            ORDER BY d.sort_order, d.id, t.sort_order, t.id, w.sort_order, w.id
+            """,
+            this::mapWordCard,
+            userId
+        );
+    }
+
+    public List<VocabularyQuizOptionResponse> getReviewQuizOptions(Long excludeWordId) {
+        return jdbcTemplate.query(
+            """
+            SELECT w.id, w.word, w.vietnamese_translation, w.english_definition
+            FROM vocabulary_word w
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            WHERE d.status = 'PUBLISHED'
+              AND w.id <> ?
+            ORDER BY RANDOM()
+            LIMIT 3
+            """,
+            (rs, rowNum) -> new VocabularyQuizOptionResponse(
+                rs.getLong("id"),
+                rs.getString("word"),
+                rs.getString("vietnamese_translation"),
+                rs.getString("english_definition")
+            ),
             excludeWordId
         );
     }
@@ -274,7 +329,7 @@ public class VocabularyService {
                 t.id, t.slug, t.title, t.description, t.thumbnail_url, t.sort_order,
                 COUNT(w.id)::int AS total_words,
                 COUNT(wp.word_id)::int AS learned_words,
-                COUNT(CASE WHEN wp.status IN ('GOOD', 'EASY', 'MASTERED') THEN 1 END)::int AS mastered_words,
+                COUNT(CASE WHEN wp.status = 'MASTERED' THEN 1 END)::int AS mastered_words,
                 COUNT(wp.word_id)::int AS current_word_index,
                 COALESCE(ROUND(100.0 * COUNT(wp.word_id) / NULLIF(COUNT(w.id), 0)), 0)::int AS completion_percentage,
                 COUNT(w.id) > 0 AND COUNT(wp.word_id) = COUNT(w.id) AS is_completed
@@ -311,7 +366,7 @@ public class VocabularyService {
                 w.id, w.word, w.part_of_speech, w.ipa_us, w.ipa_uk, w.audio_us_url, w.audio_uk_url,
                 w.english_definition, w.vietnamese_definition, w.vietnamese_translation,
                 w.example_sentence, w.example_sentence_vi, w.image_url, w.sort_order,
-                COALESCE(p.status, 'NEW') AS learning_status
+                COALESCE(p.status, 'NOT_MASTERED') AS learning_status
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE w.topic_id = ? AND p.word_id IS NULL
@@ -332,7 +387,7 @@ public class VocabularyService {
                 w.id, w.word, w.part_of_speech, w.ipa_us, w.ipa_uk, w.audio_us_url, w.audio_uk_url,
                 w.english_definition, w.vietnamese_definition, w.vietnamese_translation,
                 w.example_sentence, w.example_sentence_vi, w.image_url, w.sort_order,
-                COALESCE(p.status, 'NEW') AS learning_status
+                COALESCE(p.status, 'NOT_MASTERED') AS learning_status
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE w.topic_id = ?
@@ -465,10 +520,7 @@ public class VocabularyService {
 
     private BigDecimal easeFactor(String rating) {
         return switch (rating) {
-            case "AGAIN" -> BigDecimal.valueOf(1.30);
-            case "HARD" -> BigDecimal.valueOf(1.80);
-            case "GOOD" -> BigDecimal.valueOf(2.50);
-            case "EASY" -> BigDecimal.valueOf(2.80);
+            case "NOT_MASTERED" -> BigDecimal.valueOf(1.30);
             case "MASTERED" -> BigDecimal.valueOf(3.00);
             default -> BigDecimal.valueOf(2.50);
         };
@@ -477,10 +529,7 @@ public class VocabularyService {
     private OffsetDateTime nextReviewAt(String rating) {
         OffsetDateTime now = OffsetDateTime.now();
         return switch (rating) {
-            case "AGAIN" -> now.plusMinutes(10);
-            case "HARD" -> now.plusDays(1);
-            case "GOOD" -> now.plusDays(4);
-            case "EASY" -> now.plusDays(7);
+            case "NOT_MASTERED" -> now.plusMinutes(10);
             case "MASTERED" -> now.plusDays(30);
             default -> now.plusDays(1);
         };
@@ -491,10 +540,6 @@ public class VocabularyService {
             return 0;
         }
         return Math.min(100, Math.round(part * 100f / total));
-    }
-
-    private int valueOrZero(Integer value) {
-        return value == null ? 0 : value;
     }
 
     private record ReviewContext(String deckSlug, String topicSlug, Long topicId) {

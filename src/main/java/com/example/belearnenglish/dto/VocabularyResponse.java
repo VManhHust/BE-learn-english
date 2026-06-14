@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VocabularyResponse {
     private int totalWords;
-    private int learned;
-    private int reviewing;
-    private double accuracy;
+    private int mastered;
+    private int notMastered;
+    private int totalReviews;
 }
