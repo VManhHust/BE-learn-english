@@ -37,4 +37,7 @@ public class User {
     @Column(nullable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    @Column
+    private Instant proExpiresAt;
 }

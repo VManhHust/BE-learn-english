@@ -20,4 +20,5 @@ public class LessonPreviewDto {
     private String youtubeId;
     private String youtubeUrl;
     private Integer completionPercentage;
+    private boolean premium;
 }

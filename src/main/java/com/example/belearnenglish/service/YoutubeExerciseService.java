@@ -161,7 +161,7 @@ public class YoutubeExerciseService {
         return new LearningExerciseDto(e.getId(), e.getUuid(), e.getType(), e.getTitle(),
                 e.getModuleCount(), e.getVocabularyLevel(),
                 ext.getVideoId(), ext.getThumbnailUrl(), ext.getDurationSeconds(), channelDto,
-                topicId, topicName);
+                topicId, topicName, e.isPremium());
     }
 
     private ExerciseModuleDto toModuleDto(ExerciseModule m) {

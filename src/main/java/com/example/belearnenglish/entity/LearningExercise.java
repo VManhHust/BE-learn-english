@@ -40,6 +40,10 @@ public class LearningExercise {
     @Column(name = "vocabulary_level")
     private String vocabularyLevel;
 
+    @Builder.Default
+    @Column(name = "is_premium", nullable = false)
+    private boolean premium = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id", nullable = false)
     @JsonIgnore

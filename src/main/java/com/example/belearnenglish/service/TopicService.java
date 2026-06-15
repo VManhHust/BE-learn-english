@@ -110,7 +110,8 @@ public class TopicService {
                 false,
                 youtubeId,
                 youtubeId != null ? "https://www.youtube.com/watch?v=" + youtubeId : null,
-                completionPercentage
+                completionPercentage,
+                exercise.isPremium()
         );
     }
 

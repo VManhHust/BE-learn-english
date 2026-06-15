@@ -21,4 +21,5 @@ public class LearningExerciseDto {
     private YoutubeChannelDto channel;
     private Long topicId;
     private String topicName;
+    private boolean premium;
 }

@@ -56,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         user = userRepository.save(user);
         TokenPair tokenPair = generateTokenPair(user);
-        UserDto userDto = new UserDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getRole().name());
+        UserDto userDto = toUserDto(user);
         return new LoginResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), userDto);
     }
 
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
 
         TokenPair tokenPair = generateTokenPair(user);
 
-        UserDto userDto = new UserDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getRole().name());
+        UserDto userDto = toUserDto(user);
         return new LoginResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), userDto);
     }
 
@@ -153,6 +153,18 @@ public class AuthServiceImpl implements AuthService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
         }
+    }
+
+    private UserDto toUserDto(User user) {
+        Instant now = Instant.now();
+        return new UserDto(
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),
+                user.getRole().name(),
+                user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now),
+                user.getProExpiresAt()
+        );
     }
 
     @Override

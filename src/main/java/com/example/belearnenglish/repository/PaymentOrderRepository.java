@@ -1,0 +1,30 @@
+package com.example.belearnenglish.repository;
+
+import com.example.belearnenglish.entity.PaymentOrder;
+import com.example.belearnenglish.entity.PaymentOrderStatus;
+import com.example.belearnenglish.entity.ProPlan;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface PaymentOrderRepository extends JpaRepository<PaymentOrder, UUID> {
+
+    Optional<PaymentOrder> findByIdAndUserId(UUID id, Long userId);
+
+    Optional<PaymentOrder> findFirstByUserIdAndPlanCodeAndStatusAndExpiresAtAfterOrderByCreatedAtDesc(
+            Long userId,
+            ProPlan planCode,
+            PaymentOrderStatus status,
+            Instant now
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select paymentOrder from PaymentOrder paymentOrder where paymentOrder.paymentCode = :paymentCode")
+    Optional<PaymentOrder> findByPaymentCodeForUpdate(@Param("paymentCode") String paymentCode);
+}
