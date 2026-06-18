@@ -1,14 +1,14 @@
 package com.example.belearnenglish.dto;
 
-import lombok.Builder;
+import com.example.belearnenglish.entity.Role;
 import lombok.Data;
 
 import java.time.Instant;
 
 @Data
-@Builder
-public class ProStatusResponse {
-    private boolean pro;
+public class AdminUserUpdateRequest {
+    private String displayName;
+    private Role role;
     private Instant proStartsAt;
     private Instant proExpiresAt;
 }

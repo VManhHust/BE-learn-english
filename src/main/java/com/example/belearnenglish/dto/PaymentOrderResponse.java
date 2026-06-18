@@ -24,5 +24,6 @@ public class PaymentOrderResponse {
     private String accountHolder;
     private Instant expiresAt;
     private Instant paidAt;
+    private Instant proStartsAt;
     private Instant proExpiresAt;
 }

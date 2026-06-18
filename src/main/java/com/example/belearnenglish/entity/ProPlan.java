@@ -29,8 +29,12 @@ public enum ProPlan {
         return amount;
     }
 
+    public static boolean isLifetimeExpiry(Instant expiry) {
+        return expiry != null && !expiry.isBefore(LIFETIME_EXPIRY);
+    }
+
     public Instant calculateExpiry(Instant currentExpiry, Instant now) {
-        if (this == LIFETIME || currentExpiry != null && !currentExpiry.isBefore(LIFETIME_EXPIRY)) {
+        if (this == LIFETIME || isLifetimeExpiry(currentExpiry)) {
             return LIFETIME_EXPIRY;
         }
         Instant start = currentExpiry != null && currentExpiry.isAfter(now) ? currentExpiry : now;

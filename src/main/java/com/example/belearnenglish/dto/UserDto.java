@@ -15,5 +15,6 @@ public class UserDto {
     private String displayName;
     private String role;
     private boolean pro;
+    private Instant proStartsAt;
     private Instant proExpiresAt;
 }

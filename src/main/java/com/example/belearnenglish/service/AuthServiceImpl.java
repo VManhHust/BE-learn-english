@@ -162,9 +162,15 @@ public class AuthServiceImpl implements AuthService {
                 user.getEmail(),
                 user.getDisplayName(),
                 user.getRole().name(),
-                user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now),
+                isProActive(user, now),
+                user.getProStartsAt(),
                 user.getProExpiresAt()
         );
+    }
+
+    private boolean isProActive(User user, Instant now) {
+        boolean started = user.getProStartsAt() == null || !user.getProStartsAt().isAfter(now);
+        return started && user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now);
     }
 
     @Override

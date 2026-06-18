@@ -42,6 +42,12 @@ public class PaymentOrder {
     @Column
     private Instant paidAt;
 
+    @Column
+    private Instant proStartsAt;
+
+    @Column
+    private Instant proExpiresAt;
+
     @Column(unique = true)
     private Long sepayTransactionId;
 

@@ -14,4 +14,10 @@ public interface LearningExerciseRepository extends JpaRepository<LearningExerci
     List<LearningExercise> findTopByTopicId(Long topicId, Pageable pageable);
 
     Page<LearningExercise> findByLearningTopicId(Long topicId, Pageable pageable);
+
+    Page<LearningExercise> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
+    long countByLearningTopicId(Long topicId);
+
+    boolean existsByLearningTopicId(Long topicId);
 }

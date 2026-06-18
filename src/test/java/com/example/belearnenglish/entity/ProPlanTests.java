@@ -32,5 +32,6 @@ class ProPlanTests {
         Instant lifetimeExpiry = ProPlan.LIFETIME.calculateExpiry(null, NOW);
 
         assertThat(ProPlan.MONTHLY.calculateExpiry(lifetimeExpiry, NOW)).isEqualTo(lifetimeExpiry);
+        assertThat(ProPlan.isLifetimeExpiry(lifetimeExpiry)).isTrue();
     }
 }

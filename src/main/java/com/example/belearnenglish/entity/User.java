@@ -39,5 +39,8 @@ public class User {
     private Instant createdAt = Instant.now();
 
     @Column
+    private Instant proStartsAt;
+
+    @Column
     private Instant proExpiresAt;
 }

@@ -62,11 +62,11 @@ public class SecurityConfig {
                     "/api/topics",
                     "/api/topics/**",
                     "/api/lessons/**",
-                    "/api/admin/**",
                     "/api/v1/youtube/transcript/**",
                     "/api/v1/topic/youtube/**",
                     "/api/v1/transcript/**"
                 ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

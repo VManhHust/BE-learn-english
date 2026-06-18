@@ -105,7 +105,8 @@ public class PaymentService {
         User user = findUser(userId);
         Instant now = Instant.now();
         return ProStatusResponse.builder()
-                .pro(user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now))
+                .pro(isProActive(user, now))
+                .proStartsAt(user.getProStartsAt())
                 .proExpiresAt(user.getProExpiresAt())
                 .build();
     }
@@ -151,10 +152,12 @@ public class PaymentService {
         Instant now = Instant.now();
         User user = userRepository.findByIdForUpdate(order.getUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        user.setProExpiresAt(order.getPlanCode().calculateExpiry(user.getProExpiresAt(), now));
+        ProPeriod period = activatePro(user, order.getPlanCode(), now);
 
         order.setStatus(PaymentOrderStatus.PAID);
         order.setPaidAt(now);
+        order.setProStartsAt(period.startsAt());
+        order.setProExpiresAt(period.expiresAt());
         order.setSepayTransactionId(payload.getId());
         order.setBankReferenceCode(payload.getReferenceCode());
         order.setUpdatedAt(now);
@@ -175,8 +178,37 @@ public class PaymentService {
                 .accountHolder(accountHolder)
                 .expiresAt(order.getExpiresAt())
                 .paidAt(order.getPaidAt())
-                .proExpiresAt(order.getUser().getProExpiresAt())
+                .proStartsAt(order.getProStartsAt() != null
+                        ? order.getProStartsAt()
+                        : order.getUser().getProStartsAt())
+                .proExpiresAt(order.getProExpiresAt() != null
+                        ? order.getProExpiresAt()
+                        : order.getUser().getProExpiresAt())
                 .build();
+    }
+
+    private ProPeriod activatePro(User user, ProPlan plan, Instant now) {
+        Instant currentExpiry = user.getProExpiresAt();
+        boolean currentlyActive = isProActive(user, now);
+        Instant grantedStartsAt = currentlyActive && !ProPlan.isLifetimeExpiry(currentExpiry)
+                ? currentExpiry
+                : now;
+        Instant newExpiry = plan.calculateExpiry(currentExpiry, now);
+
+        if (!currentlyActive || user.getProStartsAt() == null) {
+            user.setProStartsAt(now);
+        }
+        user.setProExpiresAt(newExpiry);
+
+        return new ProPeriod(grantedStartsAt, newExpiry);
+    }
+
+    private boolean isProActive(User user, Instant now) {
+        boolean started = user.getProStartsAt() == null || !user.getProStartsAt().isAfter(now);
+        return started && user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now);
+    }
+
+    private record ProPeriod(Instant startsAt, Instant expiresAt) {
     }
 
     private String buildQrCodeUrl(PaymentOrder order) {
