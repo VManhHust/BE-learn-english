@@ -20,4 +20,6 @@ public interface LearningExerciseRepository extends JpaRepository<LearningExerci
     long countByLearningTopicId(Long topicId);
 
     boolean existsByLearningTopicId(Long topicId);
+
+    boolean existsByLearningTopicIdAndPremiumTrue(Long topicId);
 }

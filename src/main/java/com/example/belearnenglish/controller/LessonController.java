@@ -2,13 +2,16 @@ package com.example.belearnenglish.controller;
 
 import com.example.belearnenglish.dto.LearningExerciseDto;
 import com.example.belearnenglish.service.LessonService;
+import com.example.belearnenglish.service.ProAccessService;
 import com.example.belearnenglish.service.YoutubeExerciseService;
+import com.example.belearnenglish.security.JwtClaims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,9 +21,14 @@ public class LessonController {
 
     private final LessonService lessonService;
     private final YoutubeExerciseService youtubeExerciseService;
+    private final ProAccessService proAccessService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<LearningExerciseDto> getLesson(@PathVariable Long id) {
+    public ResponseEntity<LearningExerciseDto> getLesson(
+            @PathVariable Long id,
+            @AuthenticationPrincipal JwtClaims claims
+    ) {
+        proAccessService.assertCanAccessLesson(id, claims);
         return ResponseEntity.ok(lessonService.getLessonById(id));
     }
 
@@ -41,8 +49,10 @@ public class LessonController {
     public ResponseEntity<?> getModules(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(defaultValue = "10") int limit,
+            @AuthenticationPrincipal JwtClaims claims
     ) {
+        proAccessService.assertCanAccessLesson(id, claims);
         return ResponseEntity.ok(youtubeExerciseService.getModules(id, offset, limit));
     }
 
