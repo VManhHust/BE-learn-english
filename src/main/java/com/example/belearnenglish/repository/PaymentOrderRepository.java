@@ -24,6 +24,11 @@ public interface PaymentOrderRepository extends JpaRepository<PaymentOrder, UUID
             Instant now
     );
 
+    Optional<PaymentOrder> findFirstByUserIdAndStatusOrderByPaidAtDescCreatedAtDesc(
+            Long userId,
+            PaymentOrderStatus status
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select paymentOrder from PaymentOrder paymentOrder where paymentOrder.paymentCode = :paymentCode")
     Optional<PaymentOrder> findByPaymentCodeForUpdate(@Param("paymentCode") String paymentCode);

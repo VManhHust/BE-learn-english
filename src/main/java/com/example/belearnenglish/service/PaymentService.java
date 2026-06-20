@@ -61,6 +61,7 @@ public class PaymentService {
         validatePaymentConfiguration();
         User user = findUser(userId);
         Instant now = Instant.now();
+        validateUpgradePlan(userId, user, plan, now);
 
         Optional<PaymentOrder> currentOrder =
                 paymentOrderRepository.findFirstByUserIdAndPlanCodeAndStatusAndExpiresAtAfterOrderByCreatedAtDesc(
@@ -88,6 +89,25 @@ public class PaymentService {
         return toResponse(paymentOrderRepository.save(order));
     }
 
+    private void validateUpgradePlan(Long userId, User user, ProPlan requestedPlan, Instant now) {
+        if (!isProActive(user, now)) {
+            return;
+        }
+
+        paymentOrderRepository.findFirstByUserIdAndStatusOrderByPaidAtDescCreatedAtDesc(
+                userId,
+                PaymentOrderStatus.PAID
+        ).ifPresent(currentOrder -> {
+            ProPlan currentPlan = currentOrder.getPlanCode();
+            if (requestedPlan.getRank() <= currentPlan.getRank()) {
+                throw new ResponseStatusException(
+                        BAD_REQUEST,
+                        "Please choose a higher PRO plan to upgrade"
+                );
+            }
+        });
+    }
+
     public PaymentOrderResponse getOrder(Long userId, UUID orderId) {
         PaymentOrder order = paymentOrderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment order not found"));
@@ -104,8 +124,15 @@ public class PaymentService {
     public ProStatusResponse getProStatus(Long userId) {
         User user = findUser(userId);
         Instant now = Instant.now();
+        Optional<PaymentOrder> currentOrder =
+                paymentOrderRepository.findFirstByUserIdAndStatusOrderByPaidAtDescCreatedAtDesc(
+                        userId,
+                        PaymentOrderStatus.PAID
+                );
         return ProStatusResponse.builder()
                 .pro(isProActive(user, now))
+                .currentPlanCode(currentOrder.map(PaymentOrder::getPlanCode).orElse(null))
+                .currentPlanName(currentOrder.map(order -> order.getPlanCode().getDisplayName()).orElse(null))
                 .proStartsAt(user.getProStartsAt())
                 .proExpiresAt(user.getProExpiresAt())
                 .build();

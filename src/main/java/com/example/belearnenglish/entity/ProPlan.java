@@ -29,6 +29,15 @@ public enum ProPlan {
         return amount;
     }
 
+    public int getRank() {
+        return switch (this) {
+            case MONTHLY -> 1;
+            case QUARTERLY -> 2;
+            case YEARLY -> 3;
+            case LIFETIME -> 4;
+        };
+    }
+
     public static boolean isLifetimeExpiry(Instant expiry) {
         return expiry != null && !expiry.isBefore(LIFETIME_EXPIRY);
     }
