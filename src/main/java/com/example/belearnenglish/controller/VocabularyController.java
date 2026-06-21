@@ -4,6 +4,7 @@ import com.example.belearnenglish.dto.VocabularyDeckDetailResponse;
 import com.example.belearnenglish.dto.VocabularyDecksResponse;
 import com.example.belearnenglish.dto.VocabularyResponse;
 import com.example.belearnenglish.dto.VocabularyReviewRequest;
+import com.example.belearnenglish.dto.VocabularyReviewTopicResponse;
 import com.example.belearnenglish.dto.VocabularyQuizOptionResponse;
 import com.example.belearnenglish.security.JwtClaims;
 import com.example.belearnenglish.service.VocabularyService;
@@ -40,13 +41,13 @@ public class VocabularyController {
         return ResponseEntity.ok(vocabularyService.getDecks(getUserId()));
     }
 
-    @GetMapping("/decks/{deckSlug}")
+    @GetMapping("/decks/{deckId}")
     public ResponseEntity<VocabularyDeckDetailResponse> getDeckDetail(
-            @PathVariable String deckSlug,
+            @PathVariable Long deckId,
             @RequestParam(required = false) String topicSlug,
             @RequestParam(required = false) Integer cardNumber
     ) {
-        return ResponseEntity.ok(vocabularyService.getDeckDetail(getUserId(), deckSlug, topicSlug, cardNumber));
+        return ResponseEntity.ok(vocabularyService.getDeckDetail(getUserId(), deckId, topicSlug, cardNumber));
     }
 
     @PostMapping("/words/{wordId}/review")
@@ -58,8 +59,16 @@ public class VocabularyController {
     }
 
     @DeleteMapping("/topics/{topicId}/progress")
-    public ResponseEntity<VocabularyDeckDetailResponse> resetTopicProgress(@PathVariable Long topicId) {
-        return ResponseEntity.ok(vocabularyService.resetTopicProgress(getUserId(), topicId));
+    public ResponseEntity<VocabularyDeckDetailResponse> resetTopicProgress(
+            @PathVariable Long topicId,
+            @RequestParam(defaultValue = "false") boolean shuffle
+    ) {
+        return ResponseEntity.ok(vocabularyService.resetTopicProgress(getUserId(), topicId, shuffle));
+    }
+
+    @PostMapping("/topics/{topicId}/shuffle")
+    public ResponseEntity<VocabularyDeckDetailResponse> shuffleRemainingTopicWords(@PathVariable Long topicId) {
+        return ResponseEntity.ok(vocabularyService.shuffleRemainingTopicWords(getUserId(), topicId));
     }
 
     @GetMapping("/topics/{topicId}/quiz-options")
@@ -71,8 +80,15 @@ public class VocabularyController {
     }
 
     @GetMapping("/review")
-    public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getReviewWords() {
-        return ResponseEntity.ok(vocabularyService.getReviewWords(getUserId()));
+    public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getReviewWords(
+            @RequestParam(required = false) Long topicId
+    ) {
+        return ResponseEntity.ok(vocabularyService.getReviewWords(getUserId(), topicId));
+    }
+
+    @GetMapping("/review/topics")
+    public ResponseEntity<List<VocabularyReviewTopicResponse>> getReviewTopics() {
+        return ResponseEntity.ok(vocabularyService.getReviewTopics(getUserId()));
     }
 
     @GetMapping("/words")
@@ -82,9 +98,10 @@ public class VocabularyController {
 
     @GetMapping("/review/options")
     public ResponseEntity<List<VocabularyQuizOptionResponse>> getReviewQuizOptions(
-            @RequestParam Long excludeWordId
+            @RequestParam Long excludeWordId,
+            @RequestParam(required = false) Long topicId
     ) {
-        return ResponseEntity.ok(vocabularyService.getReviewQuizOptions(excludeWordId));
+        return ResponseEntity.ok(vocabularyService.getReviewQuizOptions(excludeWordId, topicId));
     }
 
     private Long getUserId() {

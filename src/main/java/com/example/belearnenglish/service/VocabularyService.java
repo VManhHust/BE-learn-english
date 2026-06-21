@@ -9,6 +9,7 @@ import com.example.belearnenglish.dto.VocabularyDecksResponse.VocabularyDeckCard
 import com.example.belearnenglish.dto.VocabularyDecksResponse.VocabularyDeckCategoryDto;
 import com.example.belearnenglish.dto.VocabularyResponse;
 import com.example.belearnenglish.dto.VocabularyQuizOptionResponse;
+import com.example.belearnenglish.dto.VocabularyReviewTopicResponse;
 import com.example.belearnenglish.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,12 +25,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class VocabularyService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final FreeDictionaryPronunciationService pronunciationService;
 
     public VocabularyResponse getVocabularyData(Long userId) {
         return jdbcTemplate.queryForObject(
@@ -110,12 +113,12 @@ public class VocabularyService {
         return new VocabularyDecksResponse(decks.size(), categories);
     }
 
-    public VocabularyDeckDetailResponse getDeckDetail(Long userId, String deckSlug, String topicSlug) {
-        return getDeckDetail(userId, deckSlug, topicSlug, null);
+    public VocabularyDeckDetailResponse getDeckDetail(Long userId, Long deckId, String topicSlug) {
+        return getDeckDetail(userId, deckId, topicSlug, null);
     }
 
-    public VocabularyDeckDetailResponse getDeckDetail(Long userId, String deckSlug, String topicSlug, Integer cardNumber) {
-        DeckDetailDto deck = findDeck(deckSlug);
+    public VocabularyDeckDetailResponse getDeckDetail(Long userId, Long deckId, String topicSlug, Integer cardNumber) {
+        DeckDetailDto deck = findDeck(deckId);
         List<TopicProgressDto> topics = findTopics(userId, deck.id());
         if (topics.isEmpty()) {
             return new VocabularyDeckDetailResponse(deck, topics, null, null, 0, 0, 0, 0, 0);
@@ -128,6 +131,7 @@ public class VocabularyService {
         WordCardDto currentCard = cardNumber == null
             ? findCurrentCard(userId, activeTopic.id())
             : findCardAtPosition(userId, activeTopic.id(), resolvedCardNumber - 1);
+        currentCard = pronunciationService.enrich(currentCard);
         resolvedCardNumber = currentCard == null
             ? (activeTopic.completed() ? activeTopic.totalWords() : 0)
             : resolvedCardNumber;
@@ -186,11 +190,11 @@ public class VocabularyService {
         );
 
         refreshTopicProgress(userId, context.topicId());
-        return getDeckDetail(userId, context.deckSlug(), context.topicSlug());
+        return getDeckDetail(userId, context.deckId(), context.topicSlug());
     }
 
     @Transactional
-    public VocabularyDeckDetailResponse resetTopicProgress(Long userId, Long topicId) {
+    public VocabularyDeckDetailResponse resetTopicProgress(Long userId, Long topicId, boolean shuffle) {
         TopicContext context = findTopicContext(topicId);
 
         jdbcTemplate.update(
@@ -207,8 +211,41 @@ public class VocabularyService {
             userId,
             topicId
         );
+        if (shuffle) {
+            jdbcTemplate.update(
+                """
+                INSERT INTO user_vocabulary_topic_progress
+                    (user_id, topic_id, learned_words, current_word_index, completion_percentage,
+                     is_completed, shuffle_seed, updated_at)
+                VALUES (?, ?, 0, 0, 0, FALSE, ?, NOW())
+                """,
+                userId,
+                topicId,
+                ThreadLocalRandom.current().nextLong()
+            );
+        }
 
-        return getDeckDetail(userId, context.deckSlug(), context.topicSlug());
+        return getDeckDetail(userId, context.deckId(), context.topicSlug());
+    }
+
+    @Transactional
+    public VocabularyDeckDetailResponse shuffleRemainingTopicWords(Long userId, Long topicId) {
+        TopicContext context = findTopicContext(topicId);
+        jdbcTemplate.update(
+            """
+            INSERT INTO user_vocabulary_topic_progress
+                (user_id, topic_id, learned_words, current_word_index, completion_percentage,
+                 is_completed, shuffle_seed, updated_at)
+            VALUES (?, ?, 0, 0, 0, FALSE, ?, NOW())
+            ON CONFLICT (user_id, topic_id) DO UPDATE SET
+                shuffle_seed = EXCLUDED.shuffle_seed,
+                updated_at = NOW()
+            """,
+            userId,
+            topicId,
+            ThreadLocalRandom.current().nextLong()
+        );
+        return getDeckDetail(userId, context.deckId(), context.topicSlug());
     }
 
     public List<VocabularyQuizOptionResponse> getQuizOptions(Long topicId, Long excludeWordId) {
@@ -234,7 +271,32 @@ public class VocabularyService {
         );
     }
 
-    public List<WordCardDto> getReviewWords(Long userId) {
+    public List<VocabularyReviewTopicResponse> getReviewTopics(Long userId) {
+        return jdbcTemplate.query(
+            """
+            SELECT t.id, t.slug, t.title, d.title AS deck_title, COUNT(w.id)::int AS review_word_count
+            FROM user_vocabulary_word_progress p
+            JOIN vocabulary_word w ON w.id = p.word_id
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            WHERE p.user_id = ?
+              AND p.status = 'NOT_MASTERED'
+              AND d.status = 'PUBLISHED'
+            GROUP BY t.id, t.slug, t.title, t.sort_order, d.id, d.title, d.sort_order
+            ORDER BY d.sort_order, d.id, t.sort_order, t.id
+            """,
+            (rs, rowNum) -> new VocabularyReviewTopicResponse(
+                rs.getLong("id"),
+                rs.getString("slug"),
+                rs.getString("title"),
+                rs.getString("deck_title"),
+                rs.getInt("review_word_count")
+            ),
+            userId
+        );
+    }
+
+    public List<WordCardDto> getReviewWords(Long userId, Long topicId) {
         return jdbcTemplate.query(
             """
             SELECT
@@ -249,10 +311,13 @@ public class VocabularyService {
             WHERE p.user_id = ?
               AND p.status = 'NOT_MASTERED'
               AND d.status = 'PUBLISHED'
+              AND (CAST(? AS BIGINT) IS NULL OR t.id = ?)
             ORDER BY p.updated_at, w.id
             """,
             this::mapWordCard,
-            userId
+            userId,
+            topicId,
+            topicId
         );
     }
 
@@ -276,7 +341,7 @@ public class VocabularyService {
         );
     }
 
-    public List<VocabularyQuizOptionResponse> getReviewQuizOptions(Long excludeWordId) {
+    public List<VocabularyQuizOptionResponse> getReviewQuizOptions(Long excludeWordId, Long topicId) {
         return jdbcTemplate.query(
             """
             SELECT w.id, w.word, w.vietnamese_translation, w.english_definition
@@ -285,6 +350,7 @@ public class VocabularyService {
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE d.status = 'PUBLISHED'
               AND w.id <> ?
+              AND (CAST(? AS BIGINT) IS NULL OR t.id = ?)
             ORDER BY RANDOM()
             LIMIT 3
             """,
@@ -294,16 +360,18 @@ public class VocabularyService {
                 rs.getString("vietnamese_translation"),
                 rs.getString("english_definition")
             ),
-            excludeWordId
+            excludeWordId,
+            topicId,
+            topicId
         );
     }
 
-    private DeckDetailDto findDeck(String deckSlug) {
+    private DeckDetailDto findDeck(Long deckId) {
         List<DeckDetailDto> decks = jdbcTemplate.query(
             """
             SELECT id, slug, title, category, description, cover_color, is_premium
             FROM vocabulary_deck
-            WHERE slug = ? AND status = 'PUBLISHED'
+            WHERE id = ? AND status = 'PUBLISHED'
             """,
             (rs, rowNum) -> new DeckDetailDto(
                 rs.getLong("id"),
@@ -314,7 +382,7 @@ public class VocabularyService {
                 rs.getString("cover_color"),
                 rs.getBoolean("is_premium")
             ),
-            deckSlug
+            deckId
         );
         if (decks.isEmpty()) {
             throw new ResourceNotFoundException("Không tìm thấy bộ từ vựng");
@@ -369,11 +437,18 @@ public class VocabularyService {
                 COALESCE(p.status, 'NOT_MASTERED') AS learning_status
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
+            LEFT JOIN user_vocabulary_topic_progress tp ON tp.topic_id = w.topic_id AND tp.user_id = ?
             WHERE w.topic_id = ? AND p.word_id IS NULL
-            ORDER BY w.sort_order, w.id
+            ORDER BY
+                CASE
+                    WHEN tp.shuffle_seed IS NULL THEN w.sort_order::bigint
+                    ELSE hashtextextended(w.id::text, tp.shuffle_seed)
+                END,
+                w.id
             LIMIT 1
             """,
             this::mapWordCard,
+            userId,
             userId,
             topicId
         );
@@ -390,11 +465,23 @@ public class VocabularyService {
                 COALESCE(p.status, 'NOT_MASTERED') AS learning_status
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
+            LEFT JOIN user_vocabulary_topic_progress tp ON tp.topic_id = w.topic_id AND tp.user_id = ?
             WHERE w.topic_id = ?
-            ORDER BY w.sort_order, w.id
+            ORDER BY
+                CASE
+                    WHEN tp.shuffle_seed IS NOT NULL AND p.word_id IS NULL THEN 1
+                    ELSE 0
+                END,
+                CASE
+                    WHEN tp.shuffle_seed IS NULL THEN w.sort_order::bigint
+                    WHEN p.word_id IS NOT NULL THEN (EXTRACT(EPOCH FROM p.updated_at) * 1000000)::bigint
+                    ELSE hashtextextended(w.id::text, tp.shuffle_seed)
+                END,
+                w.id
             LIMIT 1 OFFSET ?
             """,
             this::mapWordCard,
+            userId,
             userId,
             topicId,
             Math.max(cardIndex, 0)
@@ -419,14 +506,14 @@ public class VocabularyService {
     private ReviewContext findReviewContext(Long wordId) {
         List<ReviewContext> contexts = jdbcTemplate.query(
             """
-            SELECT d.slug AS deck_slug, t.slug AS topic_slug, t.id AS topic_id
+            SELECT d.id AS deck_id, t.slug AS topic_slug, t.id AS topic_id
             FROM vocabulary_word w
             JOIN vocabulary_topic t ON t.id = w.topic_id
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE w.id = ?
             """,
             (rs, rowNum) -> new ReviewContext(
-                rs.getString("deck_slug"),
+                rs.getLong("deck_id"),
                 rs.getString("topic_slug"),
                 rs.getLong("topic_id")
             ),
@@ -441,13 +528,13 @@ public class VocabularyService {
     private TopicContext findTopicContext(Long topicId) {
         List<TopicContext> contexts = jdbcTemplate.query(
             """
-            SELECT d.slug AS deck_slug, t.slug AS topic_slug
+            SELECT d.id AS deck_id, t.slug AS topic_slug
             FROM vocabulary_topic t
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE t.id = ? AND d.status = 'PUBLISHED'
             """,
             (rs, rowNum) -> new TopicContext(
-                rs.getString("deck_slug"),
+                rs.getLong("deck_id"),
                 rs.getString("topic_slug")
             ),
             topicId
@@ -542,9 +629,9 @@ public class VocabularyService {
         return Math.min(100, Math.round(part * 100f / total));
     }
 
-    private record ReviewContext(String deckSlug, String topicSlug, Long topicId) {
+    private record ReviewContext(Long deckId, String topicSlug, Long topicId) {
     }
 
-    private record TopicContext(String deckSlug, String topicSlug) {
+    private record TopicContext(Long deckId, String topicSlug) {
     }
 }

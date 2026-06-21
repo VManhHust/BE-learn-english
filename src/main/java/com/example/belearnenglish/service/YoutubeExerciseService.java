@@ -127,6 +127,7 @@ public class YoutubeExerciseService {
                     .timeStartMs(req.getTimeStartMs())
                     .timeEndMs(req.getTimeEndMs())
                     .correctAnswer(req.getContent())
+                    .vietnameseText(req.getVietnameseText())
                     .build();
             ExerciseModule module = ExerciseModule.builder()
                     .type(ExerciseModuleType.YOUTUBE)

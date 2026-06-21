@@ -228,3 +228,9 @@ The application follows a layered architecture:
 ## License
 
 [Your License Here]
+# Vocabulary pronunciation
+
+Vocabulary cards use the free [DictionaryAPI.dev](https://dictionaryapi.dev/)
+service when their `audio_us_url` or `audio_uk_url` database value is empty. No
+API key is required. If the service is unavailable, vocabulary endpoints keep
+returning the pronunciation data stored in the database.

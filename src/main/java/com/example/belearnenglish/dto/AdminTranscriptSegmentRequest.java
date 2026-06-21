@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SaveModuleRequest {
+public class AdminTranscriptSegmentRequest {
+    private Long id;
     private Integer timeStartMs;
     private Integer timeEndMs;
     private String content;

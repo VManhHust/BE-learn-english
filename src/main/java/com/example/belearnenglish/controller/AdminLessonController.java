@@ -74,6 +74,14 @@ public class AdminLessonController {
         return ResponseEntity.ok(adminTranscriptService.getTranscript(lessonId));
     }
 
+    /** PUT /api/admin/lessons/{lessonId}/transcript - update existing segments in place */
+    @PutMapping("/{lessonId}/transcript")
+    public ResponseEntity<List<ExerciseModuleDto>> updateTranscript(
+            @PathVariable Long lessonId,
+            @RequestBody List<AdminTranscriptSegmentRequest> segments) {
+        return ResponseEntity.ok(adminTranscriptService.updateTranscript(lessonId, segments));
+    }
+
     /** DELETE /api/admin/lessons/{lessonId}/transcript */
     @DeleteMapping("/{lessonId}/transcript")
     public ResponseEntity<Void> deleteTranscript(@PathVariable Long lessonId) {
