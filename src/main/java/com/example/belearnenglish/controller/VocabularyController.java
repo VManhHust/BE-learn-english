@@ -6,7 +6,9 @@ import com.example.belearnenglish.dto.VocabularyResponse;
 import com.example.belearnenglish.dto.VocabularyReviewRequest;
 import com.example.belearnenglish.dto.VocabularyReviewTopicResponse;
 import com.example.belearnenglish.dto.VocabularyQuizOptionResponse;
+import com.example.belearnenglish.dto.VocabularyPronunciationResponse;
 import com.example.belearnenglish.security.JwtClaims;
+import com.example.belearnenglish.service.OxfordPronunciationService;
 import com.example.belearnenglish.service.VocabularyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import java.util.List;
 public class VocabularyController {
 
     private final VocabularyService vocabularyService;
+    private final OxfordPronunciationService oxfordPronunciationService;
 
     @GetMapping
     public ResponseEntity<VocabularyResponse> getVocabularyData() {
@@ -94,6 +97,14 @@ public class VocabularyController {
     @GetMapping("/words")
     public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getWords() {
         return ResponseEntity.ok(vocabularyService.getWords(getUserId()));
+    }
+
+    @GetMapping("/pronunciation")
+    public ResponseEntity<VocabularyPronunciationResponse> getPronunciation(
+            @RequestParam String word,
+            @RequestParam(defaultValue = "US") String accent
+    ) {
+        return ResponseEntity.ok(oxfordPronunciationService.getPronunciation(word, accent));
     }
 
     @GetMapping("/review/options")

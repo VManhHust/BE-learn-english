@@ -32,7 +32,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class VocabularyService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final FreeDictionaryPronunciationService pronunciationService;
 
     public VocabularyResponse getVocabularyData(Long userId) {
         return jdbcTemplate.queryForObject(
@@ -131,7 +130,6 @@ public class VocabularyService {
         WordCardDto currentCard = cardNumber == null
             ? findCurrentCard(userId, activeTopic.id())
             : findCardAtPosition(userId, activeTopic.id(), resolvedCardNumber - 1);
-        currentCard = pronunciationService.enrich(currentCard);
         resolvedCardNumber = currentCard == null
             ? (activeTopic.completed() ? activeTopic.totalWords() : 0)
             : resolvedCardNumber;

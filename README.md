@@ -228,9 +228,13 @@ The application follows a layered architecture:
 ## License
 
 [Your License Here]
-# Vocabulary pronunciation
 
-Vocabulary cards use the free [DictionaryAPI.dev](https://dictionaryapi.dev/)
-service when their `audio_us_url` or `audio_uk_url` database value is empty. No
-API key is required. If the service is unavailable, vocabulary endpoints keep
-returning the pronunciation data stored in the database.
+## Oxford pronunciation
+
+Set the following environment variables to enable Oxford audio when a vocabulary
+card does not already have an `audio_us_url` or `audio_uk_url` value:
+
+```env
+OXFORD_API_APP_ID=your_app_id
+OXFORD_API_APP_KEY=your_app_key
+```
