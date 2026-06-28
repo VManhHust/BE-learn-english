@@ -82,6 +82,11 @@ public class VocabularyController {
         return ResponseEntity.ok(vocabularyService.getQuizOptions(topicId, excludeWordId));
     }
 
+    @GetMapping("/topics/{topicId}/words")
+    public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getTopicWords(@PathVariable Long topicId) {
+        return ResponseEntity.ok(vocabularyService.getTopicWords(getUserId(), topicId));
+    }
+
     @GetMapping("/review")
     public ResponseEntity<List<VocabularyDeckDetailResponse.WordCardDto>> getReviewWords(
             @RequestParam(required = false) Long topicId

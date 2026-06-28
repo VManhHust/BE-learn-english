@@ -339,6 +339,28 @@ public class VocabularyService {
         );
     }
 
+    public List<WordCardDto> getTopicWords(Long userId, Long topicId) {
+        findTopicContext(topicId);
+        return jdbcTemplate.query(
+            """
+            SELECT
+                w.id, w.word, w.part_of_speech, w.ipa_us, w.ipa_uk, w.audio_us_url, w.audio_uk_url,
+                w.english_definition, w.vietnamese_definition, w.vietnamese_translation,
+                w.example_sentence, w.example_sentence_vi, w.image_url, w.sort_order,
+                COALESCE(p.status, 'UNLEARNED') AS learning_status
+            FROM vocabulary_word w
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
+            WHERE t.id = ? AND d.status = 'PUBLISHED'
+            ORDER BY w.sort_order, w.id
+            """,
+            this::mapWordCard,
+            userId,
+            topicId
+        );
+    }
+
     public List<VocabularyQuizOptionResponse> getReviewQuizOptions(Long excludeWordId, Long topicId) {
         return jdbcTemplate.query(
             """
