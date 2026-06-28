@@ -112,18 +112,18 @@ public class VocabularyService {
         return new VocabularyDecksResponse(decks.size(), categories);
     }
 
-    public VocabularyDeckDetailResponse getDeckDetail(Long userId, Long deckId, String topicSlug) {
-        return getDeckDetail(userId, deckId, topicSlug, null);
+    public VocabularyDeckDetailResponse getDeckDetail(Long userId, Long deckId, Long topicId) {
+        return getDeckDetail(userId, deckId, topicId, null);
     }
 
-    public VocabularyDeckDetailResponse getDeckDetail(Long userId, Long deckId, String topicSlug, Integer cardNumber) {
+    public VocabularyDeckDetailResponse getDeckDetail(Long userId, Long deckId, Long topicId, Integer cardNumber) {
         DeckDetailDto deck = findDeck(deckId);
         List<TopicProgressDto> topics = findTopics(userId, deck.id());
         if (topics.isEmpty()) {
             return new VocabularyDeckDetailResponse(deck, topics, null, null, 0, 0, 0, 0, 0);
         }
 
-        TopicProgressDto activeTopic = selectActiveTopic(topics, topicSlug);
+        TopicProgressDto activeTopic = selectActiveTopic(topics, topicId);
         int resolvedCardNumber = cardNumber == null
             ? Math.min(activeTopic.currentWordIndex() + 1, activeTopic.totalWords())
             : Math.max(1, Math.min(cardNumber, activeTopic.totalWords()));
@@ -188,7 +188,7 @@ public class VocabularyService {
         );
 
         refreshTopicProgress(userId, context.topicId());
-        return getDeckDetail(userId, context.deckId(), context.topicSlug());
+        return getDeckDetail(userId, context.deckId(), context.topicId());
     }
 
     @Transactional
@@ -223,7 +223,7 @@ public class VocabularyService {
             );
         }
 
-        return getDeckDetail(userId, context.deckId(), context.topicSlug());
+        return getDeckDetail(userId, context.deckId(), context.topicId());
     }
 
     @Transactional
@@ -243,7 +243,7 @@ public class VocabularyService {
             topicId,
             ThreadLocalRandom.current().nextLong()
         );
-        return getDeckDetail(userId, context.deckId(), context.topicSlug());
+        return getDeckDetail(userId, context.deckId(), context.topicId());
     }
 
     public List<VocabularyQuizOptionResponse> getQuizOptions(Long topicId, Long excludeWordId) {
@@ -509,10 +509,10 @@ public class VocabularyService {
         return cards.isEmpty() ? null : cards.getFirst();
     }
 
-    private TopicProgressDto selectActiveTopic(List<TopicProgressDto> topics, String topicSlug) {
-        if (topicSlug != null && !topicSlug.isBlank()) {
+    private TopicProgressDto selectActiveTopic(List<TopicProgressDto> topics, Long topicId) {
+        if (topicId != null) {
             return topics.stream()
-                .filter(topic -> topic.slug().equals(topicSlug))
+                .filter(topic -> topic.id().equals(topicId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chủ đề từ vựng"));
         }
@@ -548,14 +548,15 @@ public class VocabularyService {
     private TopicContext findTopicContext(Long topicId) {
         List<TopicContext> contexts = jdbcTemplate.query(
             """
-            SELECT d.id AS deck_id, t.slug AS topic_slug
+            SELECT d.id AS deck_id, t.slug AS topic_slug, t.id AS topic_id
             FROM vocabulary_topic t
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE t.id = ? AND d.status = 'PUBLISHED'
             """,
             (rs, rowNum) -> new TopicContext(
                 rs.getLong("deck_id"),
-                rs.getString("topic_slug")
+                rs.getString("topic_slug"),
+                rs.getLong("topic_id")
             ),
             topicId
         );
@@ -676,10 +677,12 @@ public class VocabularyService {
     private static class TopicContext {
         private final Long deckId;
         private final String topicSlug;
+        private final Long topicId;
 
-        private TopicContext(Long deckId, String topicSlug) {
+        private TopicContext(Long deckId, String topicSlug, Long topicId) {
             this.deckId = deckId;
             this.topicSlug = topicSlug;
+            this.topicId = topicId;
         }
 
         private Long deckId() {
@@ -688,6 +691,10 @@ public class VocabularyService {
 
         private String topicSlug() {
             return topicSlug;
+        }
+
+        private Long topicId() {
+            return topicId;
         }
     }
 }

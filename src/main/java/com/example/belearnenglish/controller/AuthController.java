@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @RestController
@@ -58,7 +60,6 @@ public class AuthController {
                                                HttpServletResponse servletResponse) {
         LoginResponse response = authService.login(request);
         setRefreshCookie(servletResponse, response.getRefreshToken());
-        response.setRefreshToken(null);
         return ResponseEntity.ok(response);
     }
 
@@ -96,7 +97,6 @@ public class AuthController {
 
         LoginResponse response = authService.register(request);
         setRefreshCookie(servletResponse, response.getRefreshToken());
-        response.setRefreshToken(null);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -204,10 +204,16 @@ public class AuthController {
                     });
             TokenPair tokenPair = authService.generateTokenPair(user);
             setRefreshCookie(response, tokenPair.getRefreshToken());
-            response.sendRedirect(frontendUrl + "/auth/callback?accessToken=" + tokenPair.getAccessToken());
+            response.sendRedirect(frontendUrl
+                    + "/auth/callback?accessToken=" + encode(tokenPair.getAccessToken())
+                    + "&refreshToken=" + encode(tokenPair.getRefreshToken()));
         } catch (Exception e) {
             response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
         }
+    }
+
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private void setRefreshCookie(HttpServletResponse response, String token) {

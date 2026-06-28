@@ -47,10 +47,10 @@ public class VocabularyController {
     @GetMapping("/decks/{deckId}")
     public ResponseEntity<VocabularyDeckDetailResponse> getDeckDetail(
             @PathVariable Long deckId,
-            @RequestParam(required = false) String topicSlug,
+            @RequestParam(required = false) Long topicId,
             @RequestParam(required = false) Integer cardNumber
     ) {
-        return ResponseEntity.ok(vocabularyService.getDeckDetail(getUserId(), deckId, topicSlug, cardNumber));
+        return ResponseEntity.ok(vocabularyService.getDeckDetail(getUserId(), deckId, topicId, cardNumber));
     }
 
     @PostMapping("/words/{wordId}/review")
