@@ -627,9 +627,45 @@ public class VocabularyService {
         return Math.min(100, Math.round(part * 100f / total));
     }
 
-    private record ReviewContext(Long deckId, String topicSlug, Long topicId) {
+    private static class ReviewContext {
+        private final Long deckId;
+        private final String topicSlug;
+        private final Long topicId;
+
+        private ReviewContext(Long deckId, String topicSlug, Long topicId) {
+            this.deckId = deckId;
+            this.topicSlug = topicSlug;
+            this.topicId = topicId;
+        }
+
+        private Long deckId() {
+            return deckId;
+        }
+
+        private String topicSlug() {
+            return topicSlug;
+        }
+
+        private Long topicId() {
+            return topicId;
+        }
     }
 
-    private record TopicContext(Long deckId, String topicSlug) {
+    private static class TopicContext {
+        private final Long deckId;
+        private final String topicSlug;
+
+        private TopicContext(Long deckId, String topicSlug) {
+            this.deckId = deckId;
+            this.topicSlug = topicSlug;
+        }
+
+        private Long deckId() {
+            return deckId;
+        }
+
+        private String topicSlug() {
+            return topicSlug;
+        }
     }
 }

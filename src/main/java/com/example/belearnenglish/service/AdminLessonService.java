@@ -3,6 +3,7 @@ package com.example.belearnenglish.service;
 import com.example.belearnenglish.dto.LearningExerciseDto;
 import com.example.belearnenglish.dto.SaveExerciseRequest;
 import com.example.belearnenglish.entity.*;
+import com.example.belearnenglish.entity.enums.LearningExerciseType;
 import com.example.belearnenglish.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

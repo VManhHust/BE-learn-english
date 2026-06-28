@@ -4,8 +4,8 @@ import com.example.belearnenglish.dto.PaymentOrderResponse;
 import com.example.belearnenglish.dto.ProStatusResponse;
 import com.example.belearnenglish.dto.SepayWebhookPayload;
 import com.example.belearnenglish.entity.PaymentOrder;
-import com.example.belearnenglish.entity.PaymentOrderStatus;
-import com.example.belearnenglish.entity.ProPlan;
+import com.example.belearnenglish.entity.enums.PaymentOrderStatus;
+import com.example.belearnenglish.entity.enums.ProPlan;
 import com.example.belearnenglish.entity.User;
 import com.example.belearnenglish.exception.ResourceNotFoundException;
 import com.example.belearnenglish.repository.PaymentOrderRepository;
@@ -235,7 +235,22 @@ public class PaymentService {
         return started && user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now);
     }
 
-    private record ProPeriod(Instant startsAt, Instant expiresAt) {
+    private static class ProPeriod {
+        private final Instant startsAt;
+        private final Instant expiresAt;
+
+        private ProPeriod(Instant startsAt, Instant expiresAt) {
+            this.startsAt = startsAt;
+            this.expiresAt = expiresAt;
+        }
+
+        private Instant startsAt() {
+            return startsAt;
+        }
+
+        private Instant expiresAt() {
+            return expiresAt;
+        }
     }
 
     private String buildQrCodeUrl(PaymentOrder order) {

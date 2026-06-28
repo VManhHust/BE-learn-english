@@ -1,32 +1,55 @@
 package com.example.belearnenglish.dto;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import java.util.List;
 
-public record VocabularyDecksResponse(
-    int totalDecks,
-    List<VocabularyDeckCategoryDto> categories
-) {
-    public record VocabularyDeckCategoryDto(
-        String name,
-        int deckCount,
-        List<VocabularyDeckCardDto> decks
-    ) {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(fluent = true)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class VocabularyDecksResponse {
+    private int totalDecks;
+    private List<VocabularyDeckCategoryDto> categories;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Accessors(fluent = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    public static class VocabularyDeckCategoryDto {
+        private String name;
+        private int deckCount;
+        private List<VocabularyDeckCardDto> decks;
     }
 
-    public record VocabularyDeckCardDto(
-        Long id,
-        String slug,
-        String title,
-        String category,
-        String description,
-        String coverColor,
-        boolean premium,
-        int topicCount,
-        int wordCount,
-        int learnerCount,
-        int learnedWords,
-        int completionPercentage,
-        String statusLabel
-    ) {
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Accessors(fluent = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    public static class VocabularyDeckCardDto {
+        private Long id;
+        private String slug;
+        private String title;
+        private String category;
+        private String description;
+        private String coverColor;
+        private boolean premium;
+        private int topicCount;
+        private int wordCount;
+        private int learnerCount;
+        private int learnedWords;
+        private int completionPercentage;
+        private String statusLabel;
     }
 }

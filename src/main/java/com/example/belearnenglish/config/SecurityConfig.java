@@ -58,6 +58,7 @@ public class SecurityConfig {
                     "/api/auth/forgot-password/send-otp",
                     "/api/auth/forgot-password/verify-otp",
                     "/api/auth/forgot-password/reset",
+                    "/api/token/set-cookie",
                     "/api/v1/payments/sepay/webhook",
                     "/api/topics",
                     "/api/topics/**",

@@ -4,7 +4,7 @@ import com.example.belearnenglish.dto.LearningExerciseDto;
 import com.example.belearnenglish.entity.YoutubeExerciseExtension;
 import com.example.belearnenglish.repository.LearningTopicRepository;
 import com.example.belearnenglish.repository.YoutubeExerciseExtensionRepository;
-import com.example.belearnenglish.entity.LearningTopicType;
+import com.example.belearnenglish.entity.enums.LearningTopicType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

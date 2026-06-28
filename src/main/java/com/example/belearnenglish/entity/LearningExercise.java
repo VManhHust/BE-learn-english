@@ -1,5 +1,6 @@
 package com.example.belearnenglish.entity;
 
+import com.example.belearnenglish.entity.enums.LearningExerciseType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

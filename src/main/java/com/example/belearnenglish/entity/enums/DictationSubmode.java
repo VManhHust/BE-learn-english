@@ -1,4 +1,4 @@
-package com.example.belearnenglish.entity;
+package com.example.belearnenglish.entity.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

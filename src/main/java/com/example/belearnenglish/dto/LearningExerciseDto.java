@@ -1,6 +1,6 @@
 package com.example.belearnenglish.dto;
 
-import com.example.belearnenglish.entity.LearningExerciseType;
+import com.example.belearnenglish.entity.enums.LearningExerciseType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

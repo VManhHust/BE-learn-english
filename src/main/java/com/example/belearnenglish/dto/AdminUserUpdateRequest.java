@@ -1,6 +1,6 @@
 package com.example.belearnenglish.dto;
 
-import com.example.belearnenglish.entity.Role;
+import com.example.belearnenglish.entity.enums.Role;
 import lombok.Data;
 
 import java.time.Instant;

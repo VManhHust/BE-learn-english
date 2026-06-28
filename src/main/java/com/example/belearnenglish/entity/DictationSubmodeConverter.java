@@ -1,5 +1,6 @@
 package com.example.belearnenglish.entity;
 
+import com.example.belearnenglish.entity.enums.DictationSubmode;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

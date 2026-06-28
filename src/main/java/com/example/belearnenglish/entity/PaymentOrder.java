@@ -1,5 +1,7 @@
 package com.example.belearnenglish.entity;
 
+import com.example.belearnenglish.entity.enums.PaymentOrderStatus;
+import com.example.belearnenglish.entity.enums.ProPlan;
 import jakarta.persistence.*;
 import lombok.*;
 

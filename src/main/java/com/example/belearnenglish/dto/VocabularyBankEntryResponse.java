@@ -1,9 +1,22 @@
 package com.example.belearnenglish.dto;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 import java.time.Instant;
 
-public record VocabularyBankEntryResponse(
-    Long id,
-    String word,
-    Instant addedAt
-) {}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(fluent = true)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class VocabularyBankEntryResponse {
+    private Long id;
+    private String word;
+    private Instant addedAt;
+}

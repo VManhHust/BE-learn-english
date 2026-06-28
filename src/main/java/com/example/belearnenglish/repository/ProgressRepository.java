@@ -1,6 +1,6 @@
 package com.example.belearnenglish.repository;
 
-import com.example.belearnenglish.entity.DictationSubmode;
+import com.example.belearnenglish.entity.enums.DictationSubmode;
 import com.example.belearnenglish.entity.LearningProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

@@ -2,7 +2,7 @@ package com.example.belearnenglish.controller;
 
 import com.example.belearnenglish.dto.ProgressResponse;
 import com.example.belearnenglish.dto.SaveProgressRequest;
-import com.example.belearnenglish.entity.DictationSubmode;
+import com.example.belearnenglish.entity.enums.DictationSubmode;
 import com.example.belearnenglish.security.JwtClaims;
 import com.example.belearnenglish.service.ProgressService;
 import jakarta.validation.Valid;

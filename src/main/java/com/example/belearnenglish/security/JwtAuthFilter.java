@@ -28,7 +28,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/auth/refresh",
             "/api/auth/logout",
             "/api/auth/google",
-            "/api/auth/callback/google"
+            "/api/auth/callback/google",
+            "/api/token/set-cookie"
     );
 
     private final JwtProvider jwtProvider;

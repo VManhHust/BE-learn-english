@@ -54,8 +54,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                               HttpServletResponse servletResponse) {
         LoginResponse response = authService.login(request);
+        setRefreshCookie(servletResponse, response.getRefreshToken());
+        response.setRefreshToken(null);
         return ResponseEntity.ok(response);
     }
 
@@ -82,7 +85,8 @@ public class AuthController {
      * Bước 2 đăng ký: verify OTP rồi tạo tài khoản.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request,
+                                      HttpServletResponse servletResponse) {
         try {
             // Verify OTP trước khi tạo account
             emailVerificationService.verifyOtp(request.getEmail(), request.getOtpCode());
@@ -91,6 +95,8 @@ public class AuthController {
         }
 
         LoginResponse response = authService.register(request);
+        setRefreshCookie(servletResponse, response.getRefreshToken());
+        response.setRefreshToken(null);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -197,10 +203,8 @@ public class AuthController {
                         return userRepository.save(newUser);
                     });
             TokenPair tokenPair = authService.generateTokenPair(user);
-            // Truyền cả refreshToken để FE tự set HttpOnly cookie qua Next.js API route
-            // (cross-domain: cookie của BE domain không được đọc bởi FE domain)
-            response.sendRedirect(frontendUrl + "/auth/callback?accessToken=" + tokenPair.getAccessToken()
-                    + "&refreshToken=" + tokenPair.getRefreshToken());
+            setRefreshCookie(response, tokenPair.getRefreshToken());
+            response.sendRedirect(frontendUrl + "/auth/callback?accessToken=" + tokenPair.getAccessToken());
         } catch (Exception e) {
             response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
         }

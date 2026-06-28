@@ -1,4 +1,4 @@
-package com.example.belearnenglish.entity;
+package com.example.belearnenglish.entity.enums;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

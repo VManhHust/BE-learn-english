@@ -10,7 +10,13 @@ import com.example.belearnenglish.entity.User;
 import com.example.belearnenglish.repository.LearningExerciseRepository;
 import com.example.belearnenglish.repository.LearningTopicRepository;
 import com.example.belearnenglish.repository.UserRepository;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -168,16 +174,31 @@ public class AdminCmsService {
         return Sort.by(direction, safeField);
     }
 
-    public record DashboardSummary(long users, long activeProUsers, long topics, long lessons) {
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Accessors(fluent = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    public static class DashboardSummary {
+        private long users;
+        private long activeProUsers;
+        private long topics;
+        private long lessons;
     }
 
-    public record AdminTopicDto(
-            Long id,
-            String topicName,
-            String description,
-            String type,
-            long lessonCount,
-            Instant createdAt
-    ) {
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Accessors(fluent = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    public static class AdminTopicDto {
+        private Long id;
+        private String topicName;
+        private String description;
+        private String type;
+        private long lessonCount;
+        private Instant createdAt;
     }
 }

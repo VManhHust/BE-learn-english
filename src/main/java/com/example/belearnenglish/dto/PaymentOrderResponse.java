@@ -1,7 +1,7 @@
 package com.example.belearnenglish.dto;
 
-import com.example.belearnenglish.entity.PaymentOrderStatus;
-import com.example.belearnenglish.entity.ProPlan;
+import com.example.belearnenglish.entity.enums.PaymentOrderStatus;
+import com.example.belearnenglish.entity.enums.ProPlan;
 import lombok.Builder;
 import lombok.Data;
 

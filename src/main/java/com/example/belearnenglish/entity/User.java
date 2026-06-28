@@ -1,5 +1,6 @@
 package com.example.belearnenglish.entity;
 
+import com.example.belearnenglish.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -2,6 +2,9 @@ package com.example.belearnenglish.service;
 
 import com.example.belearnenglish.dto.*;
 import com.example.belearnenglish.entity.*;
+import com.example.belearnenglish.entity.enums.ExerciseModuleType;
+import com.example.belearnenglish.entity.enums.LearningExerciseType;
+import com.example.belearnenglish.entity.enums.LearningTopicType;
 import com.example.belearnenglish.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

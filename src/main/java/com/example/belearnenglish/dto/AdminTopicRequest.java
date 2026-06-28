@@ -1,6 +1,6 @@
 package com.example.belearnenglish.dto;
 
-import com.example.belearnenglish.entity.LearningTopicType;
+import com.example.belearnenglish.entity.enums.LearningTopicType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

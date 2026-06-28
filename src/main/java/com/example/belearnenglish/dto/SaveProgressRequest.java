@@ -1,6 +1,6 @@
 package com.example.belearnenglish.dto;
 
-import com.example.belearnenglish.entity.DictationSubmode;
+import com.example.belearnenglish.entity.enums.DictationSubmode;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

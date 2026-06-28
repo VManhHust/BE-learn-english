@@ -3,7 +3,7 @@ package com.example.belearnenglish.service;
 import com.example.belearnenglish.dto.ProgressResponse;
 import com.example.belearnenglish.dto.SaveProgressRequest;
 import com.example.belearnenglish.dto.SegmentResult;
-import com.example.belearnenglish.entity.DictationSubmode;
+import com.example.belearnenglish.entity.enums.DictationSubmode;
 import com.example.belearnenglish.entity.LearningProgress;
 import com.example.belearnenglish.entity.User;
 import com.example.belearnenglish.exception.ConcurrentUpdateException;

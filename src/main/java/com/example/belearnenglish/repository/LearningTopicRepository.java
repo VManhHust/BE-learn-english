@@ -1,7 +1,7 @@
 package com.example.belearnenglish.repository;
 
 import com.example.belearnenglish.entity.LearningTopic;
-import com.example.belearnenglish.entity.LearningTopicType;
+import com.example.belearnenglish.entity.enums.LearningTopicType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

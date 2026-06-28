@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
-import com.example.belearnenglish.entity.ProPlan;
+import com.example.belearnenglish.entity.enums.ProPlan;
 
 @Data
 @Builder
