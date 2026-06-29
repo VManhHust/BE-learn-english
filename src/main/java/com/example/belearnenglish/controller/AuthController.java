@@ -26,22 +26,32 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private static final String REFRESH_COOKIE_NAME = "linguaflow_refresh_token";
+    private static final long OAUTH_SESSION_CODE_TTL_SECONDS = 120;
 
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
     private final EmailVerificationService emailVerificationService;
     private final EmailVerificationServiceImpl emailVerificationServiceImpl;
     private final UserRepository userRepository;
+    private final SecureRandom secureRandom = new SecureRandom();
+    private final Map<String, OAuthSession> pendingOAuthSessions = new ConcurrentHashMap<>();
 
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
+
+    @Value("${app.cookie.secure:false}")
+    private boolean secureCookies;
 
     public AuthController(AuthService authService,
                           GoogleOAuthService googleOAuthService,
@@ -201,19 +211,48 @@ public class AuthController {
                                 .googleId(userInfo.getGoogleId())
                                 .build();
                         return userRepository.save(newUser);
-                    });
+            });
             TokenPair tokenPair = authService.generateTokenPair(user);
             setRefreshCookie(response, tokenPair.getRefreshToken());
+            String sessionCode = createOAuthSessionCode(tokenPair);
             response.sendRedirect(frontendUrl
-                    + "/auth/callback?accessToken=" + encode(tokenPair.getAccessToken())
-                    + "&refreshToken=" + encode(tokenPair.getRefreshToken()));
+                    + "/auth/callback?code=" + encode(sessionCode));
         } catch (Exception e) {
             response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
         }
     }
 
+    @PostMapping("/oauth/session")
+    public ResponseEntity<?> exchangeOAuthSession(@RequestBody Map<String, String> request) {
+        String code = request.get("code");
+        if (code == null || code.isBlank()) {
+            return ResponseEntity.status(400).body(new ErrorResponse("OAuth session code is required"));
+        }
+
+        OAuthSession session = pendingOAuthSessions.remove(code);
+        if (session == null || session.expiresAt().isBefore(Instant.now())) {
+            return ResponseEntity.status(401).body(new ErrorResponse("OAuth session code invalid or expired"));
+        }
+
+        return ResponseEntity.ok(session.tokenPair());
+    }
+
     private String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private String createOAuthSessionCode(TokenPair tokenPair) {
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        String code = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+
+        Instant now = Instant.now();
+        pendingOAuthSessions.entrySet().removeIf(e -> e.getValue().expiresAt().isBefore(now));
+        pendingOAuthSessions.put(code, new OAuthSession(
+                tokenPair,
+                now.plusSeconds(OAUTH_SESSION_CODE_TTL_SECONDS)
+        ));
+        return code;
     }
 
     private void setRefreshCookie(HttpServletResponse response, String token) {
@@ -221,6 +260,7 @@ public class AuthController {
         cookie.setMaxAge(60 * 60 * 24 * 7);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookies);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }
@@ -230,6 +270,10 @@ public class AuthController {
         cookie.setMaxAge(0);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookies);
         response.addCookie(cookie);
+    }
+
+    private record OAuthSession(TokenPair tokenPair, Instant expiresAt) {
     }
 }
