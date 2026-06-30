@@ -158,12 +158,14 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
-            @CookieValue(name = REFRESH_COOKIE_NAME, required = false) String refreshToken) {
+            @CookieValue(name = REFRESH_COOKIE_NAME, required = false) String refreshToken,
+            HttpServletResponse servletResponse) {
         if (refreshToken == null) {
             return ResponseEntity.status(401).body(new ErrorResponse("Token invalid or expired"));
         }
         try {
             TokenPair tokenPair = authService.refresh(refreshToken);
+            setRefreshCookie(servletResponse, tokenPair.getRefreshToken());
             return ResponseEntity.ok(tokenPair);
         } catch (JwtException e) {
             return ResponseEntity.status(401).body(new ErrorResponse("Token invalid or expired"));
