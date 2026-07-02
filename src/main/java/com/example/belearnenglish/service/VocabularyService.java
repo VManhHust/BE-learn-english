@@ -35,7 +35,7 @@ public class VocabularyService {
     private final StreakService streakService;
 
     public VocabularyResponse getVocabularyData(Long userId) {
-        return jdbcTemplate.queryForObject(
+        VocabularyResponse response = jdbcTemplate.queryForObject(
             """
             SELECT
                 COUNT(DISTINCT w.id)::int AS total_words,
@@ -60,6 +60,31 @@ public class VocabularyService {
             ),
             userId
         );
+
+        List<VocabularyResponse.DailyActivity> dailyActivity = jdbcTemplate.query(
+            """
+            SELECT
+                p.updated_at::date::text AS activity_date,
+                COUNT(DISTINCT p.word_id)::int AS activity_count
+            FROM user_vocabulary_word_progress p
+            JOIN vocabulary_word w ON w.id = p.word_id
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id AND d.status = 'PUBLISHED'
+            WHERE p.user_id = ?
+              AND p.updated_at >= CURRENT_DATE - INTERVAL '41 days'
+            GROUP BY p.updated_at::date
+            ORDER BY p.updated_at::date
+            """,
+            (rs, rowNum) -> new VocabularyResponse.DailyActivity(
+                rs.getString("activity_date"),
+                rs.getInt("activity_count")
+            ),
+            userId
+        );
+        if (response != null) {
+            response.setDailyActivity(dailyActivity);
+        }
+        return response;
     }
 
     public VocabularyDecksResponse getDecks(Long userId) {
