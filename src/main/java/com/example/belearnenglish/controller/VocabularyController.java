@@ -69,6 +69,11 @@ public class VocabularyController {
         return ResponseEntity.ok(vocabularyService.resetTopicProgress(getUserId(), topicId, shuffle));
     }
 
+    @DeleteMapping("/decks/{deckId}/progress")
+    public ResponseEntity<VocabularyDeckDetailResponse> resetDeckProgress(@PathVariable Long deckId) {
+        return ResponseEntity.ok(vocabularyService.resetDeckProgress(getUserId(), deckId));
+    }
+
     @PostMapping("/topics/{topicId}/shuffle")
     public ResponseEntity<VocabularyDeckDetailResponse> shuffleRemainingTopicWords(@PathVariable Long topicId) {
         return ResponseEntity.ok(vocabularyService.shuffleRemainingTopicWords(getUserId(), topicId));

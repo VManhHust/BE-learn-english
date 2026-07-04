@@ -45,6 +45,11 @@ public class VocabularyService {
                 COUNT(DISTINCT CASE
                     WHEN p.status = 'NOT_MASTERED' THEN w.id
                 END)::int AS not_mastered,
+                COUNT(DISTINCT CASE
+                    WHEN p.status = 'NOT_MASTERED'
+                      OR (p.status = 'MASTERED' AND p.review_completed = FALSE AND p.next_review_at <= NOW())
+                    THEN w.id
+                END)::int AS due_reviews,
                 COALESCE(SUM(p.review_count), 0)::int AS total_reviews
             FROM vocabulary_word w
             JOIN vocabulary_topic t ON t.id = w.topic_id
@@ -56,6 +61,7 @@ public class VocabularyService {
                 rs.getInt("total_words"),
                 rs.getInt("mastered"),
                 rs.getInt("not_mastered"),
+                rs.getInt("due_reviews"),
                 rs.getInt("total_reviews")
             ),
             userId
@@ -185,11 +191,15 @@ public class VocabularyService {
             throw new IllegalArgumentException("Rating không hợp lệ");
         }
 
+        WordProgress currentProgress = findWordProgress(userId, wordId);
+        ReviewSchedule schedule = reviewSchedule(normalizedRating, currentProgress);
+
         jdbcTemplate.update(
             """
             INSERT INTO user_vocabulary_word_progress
-                (user_id, word_id, status, last_rating, review_count, correct_count, ease_factor, next_review_at, learned_at, updated_at)
-            VALUES (?, ?, ?, ?, 1, ?, ?, ?, CASE WHEN ? THEN NOW() ELSE NULL END, NOW())
+                (user_id, word_id, status, last_rating, review_count, correct_count, ease_factor,
+                 next_review_at, mastered_review_stage, review_completed, learned_at, updated_at)
+            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, CASE WHEN ? THEN NOW() ELSE NULL END, NOW())
             ON CONFLICT (user_id, word_id) DO UPDATE SET
                 status = EXCLUDED.status,
                 last_rating = EXCLUDED.last_rating,
@@ -197,6 +207,8 @@ public class VocabularyService {
                 correct_count = user_vocabulary_word_progress.correct_count + EXCLUDED.correct_count,
                 ease_factor = EXCLUDED.ease_factor,
                 next_review_at = EXCLUDED.next_review_at,
+                mastered_review_stage = EXCLUDED.mastered_review_stage,
+                review_completed = EXCLUDED.review_completed,
                 learned_at = CASE
                     WHEN EXCLUDED.learned_at IS NOT NULL THEN COALESCE(user_vocabulary_word_progress.learned_at, EXCLUDED.learned_at)
                     ELSE user_vocabulary_word_progress.learned_at
@@ -209,7 +221,9 @@ public class VocabularyService {
             normalizedRating,
             correct ? 1 : 0,
             easeFactor(normalizedRating),
-            nextReviewAt(normalizedRating),
+            schedule.nextReviewAt(),
+            schedule.masteredReviewStage(),
+            schedule.reviewCompleted(),
             correct
         );
 
@@ -251,6 +265,37 @@ public class VocabularyService {
         }
 
         return getDeckDetail(userId, context.deckId(), context.topicId());
+    }
+
+    @Transactional
+    public VocabularyDeckDetailResponse resetDeckProgress(Long userId, Long deckId) {
+        findDeck(deckId);
+
+        jdbcTemplate.update(
+            """
+            DELETE FROM user_vocabulary_word_progress
+            WHERE user_id = ?
+              AND word_id IN (
+                  SELECT w.id
+                  FROM vocabulary_word w
+                  JOIN vocabulary_topic t ON t.id = w.topic_id
+                  WHERE t.deck_id = ?
+              )
+            """,
+            userId,
+            deckId
+        );
+        jdbcTemplate.update(
+            """
+            DELETE FROM user_vocabulary_topic_progress
+            WHERE user_id = ?
+              AND topic_id IN (SELECT id FROM vocabulary_topic WHERE deck_id = ?)
+            """,
+            userId,
+            deckId
+        );
+
+        return getDeckDetail(userId, deckId, null);
     }
 
     @Transactional
@@ -305,7 +350,10 @@ public class VocabularyService {
             JOIN vocabulary_topic t ON t.id = w.topic_id
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE p.user_id = ?
-              AND p.status = 'NOT_MASTERED'
+              AND (
+                  p.status = 'NOT_MASTERED'
+                  OR (p.status = 'MASTERED' AND p.review_completed = FALSE AND p.next_review_at <= NOW())
+              )
               AND d.status = 'PUBLISHED'
             GROUP BY t.id, t.slug, t.title, t.sort_order, d.id, d.title, d.sort_order
             ORDER BY d.sort_order, d.id, t.sort_order, t.id
@@ -334,7 +382,10 @@ public class VocabularyService {
             JOIN vocabulary_topic t ON t.id = w.topic_id
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE p.user_id = ?
-              AND p.status = 'NOT_MASTERED'
+              AND (
+                  p.status = 'NOT_MASTERED'
+                  OR (p.status = 'MASTERED' AND p.review_completed = FALSE AND p.next_review_at <= NOW())
+              )
               AND d.status = 'PUBLISHED'
               AND (CAST(? AS BIGINT) IS NULL OR t.id = ?)
             ORDER BY p.updated_at, w.id
@@ -572,6 +623,24 @@ public class VocabularyService {
         return contexts.getFirst();
     }
 
+    private WordProgress findWordProgress(Long userId, Long wordId) {
+        List<WordProgress> progresses = jdbcTemplate.query(
+            """
+            SELECT status, mastered_review_stage, review_completed
+            FROM user_vocabulary_word_progress
+            WHERE user_id = ? AND word_id = ?
+            """,
+            (rs, rowNum) -> new WordProgress(
+                rs.getString("status"),
+                rs.getInt("mastered_review_stage"),
+                rs.getBoolean("review_completed")
+            ),
+            userId,
+            wordId
+        );
+        return progresses.isEmpty() ? null : progresses.getFirst();
+    }
+
     private TopicContext findTopicContext(Long topicId) {
         List<TopicContext> contexts = jdbcTemplate.query(
             """
@@ -661,13 +730,29 @@ public class VocabularyService {
         };
     }
 
-    private OffsetDateTime nextReviewAt(String rating) {
+    private ReviewSchedule reviewSchedule(String rating, WordProgress currentProgress) {
         OffsetDateTime now = OffsetDateTime.now();
-        return switch (rating) {
-            case "NOT_MASTERED" -> now.plusMinutes(10);
-            case "MASTERED" -> now.plusDays(30);
+        if ("NOT_MASTERED".equals(rating)) {
+            return new ReviewSchedule(null, 0, false);
+        }
+
+        int currentStage = currentProgress != null && "MASTERED".equals(currentProgress.status())
+            ? currentProgress.masteredReviewStage()
+            : 0;
+        int nextStage = currentStage + 1;
+        if (nextStage > 5) {
+            return new ReviewSchedule(null, 5, true);
+        }
+
+        OffsetDateTime nextReviewAt = switch (nextStage) {
+            case 1 -> now.plusMinutes(10);
+            case 2 -> now.plusHours(1);
+            case 3 -> now.plusDays(1);
+            case 4 -> now.plusDays(4);
+            case 5 -> now.plusDays(7);
             default -> now.plusDays(1);
         };
+        return new ReviewSchedule(nextReviewAt, nextStage, false);
     }
 
     private int percentage(int part, int total) {
@@ -699,6 +784,12 @@ public class VocabularyService {
         private Long topicId() {
             return topicId;
         }
+    }
+
+    private record WordProgress(String status, int masteredReviewStage, boolean reviewCompleted) {
+    }
+
+    private record ReviewSchedule(OffsetDateTime nextReviewAt, int masteredReviewStage, boolean reviewCompleted) {
     }
 
     private static class TopicContext {
