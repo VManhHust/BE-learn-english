@@ -67,7 +67,6 @@ public class SecurityConfig {
                     "/api/v1/topic/youtube/**",
                     "/api/v1/transcript/**"
                 ).permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
