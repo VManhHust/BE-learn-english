@@ -37,7 +37,6 @@ public class ProgressService {
     private final ProgressRepository progressRepository;
     private final UserRepository userRepository;
     private final LearningExerciseRepository exerciseRepository;
-    private final StreakService streakService;
     
     /**
      * Save or update learning progress for a user.
@@ -117,8 +116,6 @@ public class ProgressService {
         log.info("Saved progress for user={}, lesson={}, submode={}, completion={}%", 
                 userId, request.getLessonId(), request.getSubmode(), completionPercentage);
 
-        streakService.checkIn(userId);
-        
         return mapToResponse(saved);
     }
     

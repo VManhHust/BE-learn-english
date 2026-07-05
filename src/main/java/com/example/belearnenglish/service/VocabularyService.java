@@ -32,7 +32,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class VocabularyService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final StreakService streakService;
 
     public VocabularyResponse getVocabularyData(Long userId) {
         VocabularyResponse response = jdbcTemplate.queryForObject(
@@ -228,7 +227,6 @@ public class VocabularyService {
         );
 
         refreshTopicProgress(userId, context.topicId());
-        streakService.checkIn(userId);
         return getDeckDetail(userId, context.deckId(), context.topicId());
     }
 
