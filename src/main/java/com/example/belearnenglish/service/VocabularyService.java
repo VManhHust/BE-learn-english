@@ -185,6 +185,7 @@ public class VocabularyService {
         ReviewContext context = findReviewContext(wordId);
         String normalizedRating = normalizeRating(rating);
         boolean correct = "MASTERED".equals(normalizedRating);
+        boolean notMastered = "NOT_MASTERED".equals(normalizedRating);
 
         if (!List.of("NOT_MASTERED", "MASTERED").contains(normalizedRating)) {
             throw new IllegalArgumentException("Rating không hợp lệ");
@@ -196,14 +197,15 @@ public class VocabularyService {
         jdbcTemplate.update(
             """
             INSERT INTO user_vocabulary_word_progress
-                (user_id, word_id, status, last_rating, review_count, correct_count, ease_factor,
+                (user_id, word_id, status, last_rating, review_count, correct_count, not_mastered_count, ease_factor,
                  next_review_at, mastered_review_stage, review_completed, learned_at, updated_at)
-            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, CASE WHEN ? THEN NOW() ELSE NULL END, NOW())
+            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, CASE WHEN ? THEN NOW() ELSE NULL END, NOW())
             ON CONFLICT (user_id, word_id) DO UPDATE SET
                 status = EXCLUDED.status,
                 last_rating = EXCLUDED.last_rating,
                 review_count = user_vocabulary_word_progress.review_count + 1,
                 correct_count = user_vocabulary_word_progress.correct_count + EXCLUDED.correct_count,
+                not_mastered_count = user_vocabulary_word_progress.not_mastered_count + EXCLUDED.not_mastered_count,
                 ease_factor = EXCLUDED.ease_factor,
                 next_review_at = EXCLUDED.next_review_at,
                 mastered_review_stage = EXCLUDED.mastered_review_stage,
@@ -219,6 +221,7 @@ public class VocabularyService {
             normalizedRating,
             normalizedRating,
             correct ? 1 : 0,
+            notMastered ? 1 : 0,
             easeFactor(normalizedRating),
             schedule.nextReviewAt(),
             schedule.masteredReviewStage(),
@@ -413,6 +416,30 @@ public class VocabularyService {
             this::mapWordCard,
             userId
         );
+    }
+
+    public WordCardDto getFeaturedWord(Long userId) {
+        List<WordCardDto> words = jdbcTemplate.query(
+            """
+            SELECT
+                w.id, w.word, w.part_of_speech, w.ipa_us, w.ipa_uk, w.audio_us_url, w.audio_uk_url,
+                w.english_definition, w.vietnamese_definition, w.vietnamese_translation,
+                w.example_sentence, w.example_sentence_vi, w.image_url, w.sort_order,
+                p.status AS learning_status
+            FROM user_vocabulary_word_progress p
+            JOIN vocabulary_word w ON w.id = p.word_id
+            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_deck d ON d.id = t.deck_id
+            WHERE p.user_id = ?
+              AND p.not_mastered_count > 0
+              AND d.status = 'PUBLISHED'
+            ORDER BY p.not_mastered_count DESC, p.updated_at DESC, w.id
+            LIMIT 1
+            """,
+            this::mapWordCard,
+            userId
+        );
+        return words.isEmpty() ? null : words.getFirst();
     }
 
     public List<WordCardDto> getTopicWords(Long userId, Long topicId) {

@@ -109,6 +109,11 @@ public class VocabularyController {
         return ResponseEntity.ok(vocabularyService.getWords(getUserId()));
     }
 
+    @GetMapping("/featured-word")
+    public ResponseEntity<VocabularyDeckDetailResponse.WordCardDto> getFeaturedWord() {
+        return ResponseEntity.ok(vocabularyService.getFeaturedWord(getUserId()));
+    }
+
     @GetMapping("/pronunciation")
     public ResponseEntity<VocabularyPronunciationResponse> getPronunciation(
             @RequestParam String word,
