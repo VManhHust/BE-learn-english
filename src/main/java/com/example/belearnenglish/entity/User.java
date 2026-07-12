@@ -1,6 +1,7 @@
 package com.example.belearnenglish.entity;
 
 import com.example.belearnenglish.entity.enums.Role;
+import com.example.belearnenglish.entity.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,4 +45,9 @@ public class User {
 
     @Column
     private Instant proExpiresAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
 }

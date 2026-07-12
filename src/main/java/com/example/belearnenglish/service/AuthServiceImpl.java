@@ -7,6 +7,7 @@ import com.example.belearnenglish.dto.TokenPair;
 import com.example.belearnenglish.dto.UserDto;
 import com.example.belearnenglish.entity.RefreshToken;
 import com.example.belearnenglish.entity.User;
+import com.example.belearnenglish.entity.enums.UserStatus;
 import com.example.belearnenglish.repository.RefreshTokenRepository;
 import com.example.belearnenglish.repository.UserRepository;
 import com.example.belearnenglish.security.JwtProvider;
@@ -69,6 +70,7 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Email hoặc mật khẩu không đúng");
         }
+        ensureActive(user);
 
         TokenPair tokenPair = generateTokenPair(user);
 
@@ -79,6 +81,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public TokenPair generateTokenPair(User user) {
+        ensureActive(user);
         String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name(), user.getDisplayName());
         String rawRefreshToken = jwtProvider.generateRefreshToken(user.getId());
         storeRefreshToken(user, rawRefreshToken);
@@ -101,6 +104,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.save(stored);
 
         User user = stored.getUser();
+        ensureActive(user);
         return generateTokenPair(user);
     }
 
@@ -164,8 +168,15 @@ public class AuthServiceImpl implements AuthService {
                 user.getRole().name(),
                 isProActive(user, now),
                 user.getProStartsAt(),
-                user.getProExpiresAt()
+                user.getProExpiresAt(),
+                user.getStatus().name()
         );
+    }
+
+    private void ensureActive(User user) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BadCredentialsException("Tài khoản này đã bị khóa hoặc xóa");
+        }
     }
 
     private boolean isProActive(User user, Instant now) {

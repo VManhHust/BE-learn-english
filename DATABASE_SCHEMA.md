@@ -13,6 +13,7 @@ Muc dich: Luu thong tin tai khoan nguoi dung, dang nhap va trang thai PRO.
 | password_hash | VARCHAR(60) | Mat khau da bam; co the null voi tai khoan OAuth. |
 | display_name | VARCHAR(100) | Ten hien thi cua user. |
 | role | VARCHAR(10) | Vai tro, mac dinh `USER`. |
+| status | VARCHAR(20) | Trang thai tai khoan: `ACTIVE`, `LOCK`, hoac `DELETE`. Chi `ACTIVE` duoc dang nhap va dung API. |
 | google_id | VARCHAR(255) | ID Google neu user dang nhap bang Google. |
 | created_at | TIMESTAMPTZ | Thoi diem tao tai khoan. |
 | pro_expires_at | TIMESTAMPTZ | Thoi diem het han PRO. |
