@@ -1,6 +1,4 @@
 package com.example.belearnenglish.repository;
-
-import com.example.belearnenglish.entity.enums.DictationSubmode;
 import com.example.belearnenglish.entity.LearningProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,17 +17,13 @@ import java.util.Optional;
 public interface ProgressRepository extends JpaRepository<LearningProgress, Long> {
     
     /**
-     * Find progress by user ID, lesson ID, and submode.
+     * Find progress by user ID and lesson ID.
      * 
      * @param userId the user ID
      * @param lessonId the lesson ID
-     * @param submode the dictation submode
      * @return Optional containing the progress if found
      */
-    Optional<LearningProgress> findByUserIdAndLessonIdAndSubmode(
-            Long userId, 
-            Long lessonId, 
-            DictationSubmode submode);
+    Optional<LearningProgress> findByUserIdAndLessonId(Long userId, Long lessonId);
     
     /**
      * Find all progress records for a user.
@@ -47,18 +41,6 @@ public interface ProgressRepository extends JpaRepository<LearningProgress, Long
      */
     @Query("SELECT p FROM LearningProgress p WHERE p.user.id = :userId AND p.isCompleted = true")
     List<LearningProgress> findCompletedExercisesByUserId(@Param("userId") Long userId);
-    
-    /**
-     * Find all completed exercises for a user filtered by submode.
-     * 
-     * @param userId the user ID
-     * @param submode the dictation submode
-     * @return list of completed progress records
-     */
-    @Query("SELECT p FROM LearningProgress p WHERE p.user.id = :userId AND p.isCompleted = true AND p.submode = :submode")
-    List<LearningProgress> findCompletedExercisesByUserIdAndSubmode(
-            @Param("userId") Long userId, 
-            @Param("submode") DictationSubmode submode);
     
     /**
      * Delete all progress records for a user and lesson.

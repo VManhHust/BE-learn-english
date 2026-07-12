@@ -1,6 +1,4 @@
 package com.example.belearnenglish.entity;
-
-import com.example.belearnenglish.entity.enums.DictationSubmode;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,8 +19,8 @@ import java.util.Map;
 @Table(
     name = "learning_progress",
     uniqueConstraints = @UniqueConstraint(
-        name = "uk_user_lesson_submode",
-        columnNames = {"user_id", "lesson_id", "submode"}
+        name = "uk_user_lesson",
+        columnNames = {"user_id", "lesson_id"}
     ),
     indexes = {
         @Index(name = "idx_learning_progress_user_lesson", columnList = "user_id, lesson_id"),
@@ -46,10 +44,6 @@ public class LearningProgress {
     
     @Column(name = "lesson_id", nullable = false)
     private Long lessonId;
-    
-    @Convert(converter = DictationSubmodeConverter.class)
-    @Column(name = "submode", nullable = false, length = 20)
-    private DictationSubmode submode;
     
     /**
      * Map of segment index to segment result data.

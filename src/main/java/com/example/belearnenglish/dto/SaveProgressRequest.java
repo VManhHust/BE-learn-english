@@ -1,6 +1,4 @@
 package com.example.belearnenglish.dto;
-
-import com.example.belearnenglish.entity.enums.DictationSubmode;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,9 +20,6 @@ public class SaveProgressRequest {
     
     @NotNull(message = "Lesson ID is required")
     private Long lessonId;
-    
-    @NotNull(message = "Submode is required")
-    private DictationSubmode submode;
     
     @NotNull(message = "Segment results are required")
     private Map<String, SegmentResult> segmentResults;

@@ -3,7 +3,6 @@ package com.example.belearnenglish.service;
 import com.example.belearnenglish.dto.ProgressResponse;
 import com.example.belearnenglish.dto.SaveProgressRequest;
 import com.example.belearnenglish.dto.SegmentResult;
-import com.example.belearnenglish.entity.enums.DictationSubmode;
 import com.example.belearnenglish.entity.LearningProgress;
 import com.example.belearnenglish.entity.User;
 import com.example.belearnenglish.exception.ConcurrentUpdateException;
@@ -62,18 +61,17 @@ public class ProgressService {
         
         // Find existing progress or create new
         LearningProgress progress = progressRepository
-                .findByUserIdAndLessonIdAndSubmode(userId, request.getLessonId(), request.getSubmode())
+                .findByUserIdAndLessonId(userId, request.getLessonId())
                 .orElse(LearningProgress.builder()
                         .user(user)
                         .lessonId(request.getLessonId())
-                        .submode(request.getSubmode())
                         .build());
         
         // Check for concurrent update conflict
         if (progress.getId() != null && request.getLastUpdated() != null) {
             if (progress.getUpdatedAt().isAfter(request.getLastUpdated())) {
-                log.warn("Concurrent update detected for user={}, lesson={}, submode={}", 
-                        userId, request.getLessonId(), request.getSubmode());
+                log.warn("Concurrent update detected for user={}, lesson={}", 
+                        userId, request.getLessonId());
                 throw new ConcurrentUpdateException("Progress has been updated by another session. Please reload and try again.");
             }
         }
@@ -103,8 +101,8 @@ public class ProgressService {
             progress.setIsCompleted(true);
             if (progress.getCompletedAt() == null) {
                 progress.setCompletedAt(Instant.now());
-                log.info("Exercise completed for user={}, lesson={}, submode={}", 
-                        userId, request.getLessonId(), request.getSubmode());
+                log.info("Exercise completed for user={}, lesson={}", 
+                        userId, request.getLessonId());
             }
         } else {
             progress.setIsCompleted(false);
@@ -113,24 +111,23 @@ public class ProgressService {
         
         LearningProgress saved = progressRepository.save(progress);
         
-        log.info("Saved progress for user={}, lesson={}, submode={}, completion={}%", 
-                userId, request.getLessonId(), request.getSubmode(), completionPercentage);
+        log.info("Saved progress for user={}, lesson={}, completion={}%", 
+                userId, request.getLessonId(), completionPercentage);
 
         return mapToResponse(saved);
     }
     
     /**
-     * Get learning progress for a user, lesson, and submode.
+     * Get learning progress for a user and lesson.
      * 
      * @param userId the user ID
      * @param lessonId the lesson ID
-     * @param submode the dictation submode
      * @return Optional containing the progress if found
      */
     @Transactional(readOnly = true)
-    public Optional<ProgressResponse> getProgress(Long userId, Long lessonId, DictationSubmode submode) {
+    public Optional<ProgressResponse> getProgress(Long userId, Long lessonId) {
         return progressRepository
-                .findByUserIdAndLessonIdAndSubmode(userId, lessonId, submode)
+                .findByUserIdAndLessonId(userId, lessonId)
                 .map(this::mapToResponse);
     }
     
@@ -150,32 +147,15 @@ public class ProgressService {
     }
     
     /**
-     * Get all completed exercises for a user filtered by submode.
-     * 
-     * @param userId the user ID
-     * @param submode the dictation submode
-     * @return list of completed progress responses
-     */
-    @Transactional(readOnly = true)
-    public List<ProgressResponse> getCompletedExercises(Long userId, DictationSubmode submode) {
-        return progressRepository
-                .findCompletedExercisesByUserIdAndSubmode(userId, submode)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    /**
-     * Reset learning progress for a user, lesson, and submode.
+     * Reset learning progress for a user and lesson.
      * Clears all segment results and user inputs.
      * 
      * @param userId the user ID
      * @param lessonId the lesson ID
-     * @param submode the dictation submode
      */
-    public void resetProgress(Long userId, Long lessonId, DictationSubmode submode) {
+    public void resetProgress(Long userId, Long lessonId) {
         progressRepository
-                .findByUserIdAndLessonIdAndSubmode(userId, lessonId, submode)
+                .findByUserIdAndLessonId(userId, lessonId)
                 .ifPresent(progress -> {
                     progress.setSegmentResults(new HashMap<>());
                     progress.setUserInputs(new HashMap<>());
@@ -185,8 +165,7 @@ public class ProgressService {
                     progress.setUpdatedAt(Instant.now());
                     progressRepository.save(progress);
                     
-                    log.info("Reset progress for user={}, lesson={}, submode={}", 
-                            userId, lessonId, submode);
+                    log.info("Reset progress for user={}, lesson={}", userId, lessonId);
                 });
     }
     
@@ -308,7 +287,6 @@ public class ProgressService {
     private ProgressResponse mapToResponse(LearningProgress progress) {
         return ProgressResponse.builder()
                 .lessonId(progress.getLessonId())
-                .submode(progress.getSubmode())
                 .segmentResults(convertMapToSegmentResults(progress.getSegmentResults()))
                 .userInputs(progress.getUserInputs())
                 .completionPercentage(progress.getCompletionPercentage())

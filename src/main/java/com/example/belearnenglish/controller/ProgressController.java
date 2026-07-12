@@ -2,7 +2,6 @@ package com.example.belearnenglish.controller;
 
 import com.example.belearnenglish.dto.ProgressResponse;
 import com.example.belearnenglish.dto.SaveProgressRequest;
-import com.example.belearnenglish.entity.enums.DictationSubmode;
 import com.example.belearnenglish.security.JwtClaims;
 import com.example.belearnenglish.service.ProgressService;
 import jakarta.validation.Valid;
@@ -39,87 +38,67 @@ public class ProgressController {
             @AuthenticationPrincipal JwtClaims claims) {
         
         Long userId = claims.getUserId();
-        log.debug("Saving progress for user={}, lesson={}, submode={}", 
-                userId, request.getLessonId(), request.getSubmode());
+        log.debug("Saving progress for user={}, lesson={}", userId, request.getLessonId());
         
         ProgressResponse response = progressService.saveProgress(userId, request);
         return ResponseEntity.ok(response);
     }
     
     /**
-     * Get learning progress for a specific lesson and submode.
+     * Get learning progress for a specific lesson.
      * 
      * @param lessonId the lesson ID
-     * @param submode the dictation submode (full or fill-blank)
      * @param claims the authenticated user claims
      * @return the progress response if found, 404 if not found
      */
     @GetMapping
     public ResponseEntity<ProgressResponse> getProgress(
             @RequestParam Long lessonId,
-            @RequestParam String submode,
             @AuthenticationPrincipal JwtClaims claims) {
         
         Long userId = claims.getUserId();
-        DictationSubmode submodeEnum = DictationSubmode.fromJson(submode);
         
-        log.debug("Loading progress for user={}, lesson={}, submode={}", 
-                userId, lessonId, submodeEnum);
+        log.debug("Loading progress for user={}, lesson={}", userId, lessonId);
         
-        return progressService.getProgress(userId, lessonId, submodeEnum)
+        return progressService.getProgress(userId, lessonId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
     /**
-     * Reset learning progress for a specific lesson and submode.
+     * Reset learning progress for a specific lesson.
      * Clears all segment results and user inputs.
      * 
      * @param lessonId the lesson ID
-     * @param submode the dictation submode (full or fill-blank)
      * @param claims the authenticated user claims
      * @return 204 No Content on success
      */
     @DeleteMapping
     public ResponseEntity<Void> resetProgress(
             @RequestParam Long lessonId,
-            @RequestParam String submode,
             @AuthenticationPrincipal JwtClaims claims) {
         
         Long userId = claims.getUserId();
-        DictationSubmode submodeEnum = DictationSubmode.fromJson(submode);
         
-        log.debug("Resetting progress for user={}, lesson={}, submode={}", 
-                userId, lessonId, submodeEnum);
+        log.debug("Resetting progress for user={}, lesson={}", userId, lessonId);
         
-        progressService.resetProgress(userId, lessonId, submodeEnum);
+        progressService.resetProgress(userId, lessonId);
         return ResponseEntity.noContent().build();
     }
     
     /**
      * Get all completed exercises for the authenticated user.
-     * Optionally filter by submode.
      * 
      * @param claims the authenticated user claims
-     * @param submode optional submode filter (full or fill-blank)
      * @return list of completed exercises
      */
     @GetMapping("/completed")
     public ResponseEntity<List<ProgressResponse>> getCompletedExercises(
-            @AuthenticationPrincipal JwtClaims claims,
-            @RequestParam(required = false) String submode) {
+            @AuthenticationPrincipal JwtClaims claims) {
         
         Long userId = claims.getUserId();
-        List<ProgressResponse> completed;
-        
-        if (submode != null) {
-            DictationSubmode submodeEnum = DictationSubmode.fromJson(submode);
-            log.debug("Loading completed exercises for user={}, submode={}", userId, submodeEnum);
-            completed = progressService.getCompletedExercises(userId, submodeEnum);
-        } else {
-            log.debug("Loading all completed exercises for user={}", userId);
-            completed = progressService.getCompletedExercises(userId);
-        }
+        log.debug("Loading all completed exercises for user={}", userId);
+        List<ProgressResponse> completed = progressService.getCompletedExercises(userId);
         
         return ResponseEntity.ok(completed);
     }

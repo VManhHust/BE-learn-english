@@ -1,6 +1,4 @@
 package com.example.belearnenglish.dto;
-
-import com.example.belearnenglish.entity.enums.DictationSubmode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,8 +18,6 @@ import java.util.Map;
 public class ProgressResponse {
     
     private Long lessonId;
-    
-    private DictationSubmode submode;
     
     private Map<String, SegmentResult> segmentResults;
     
