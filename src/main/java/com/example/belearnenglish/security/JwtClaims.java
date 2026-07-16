@@ -12,4 +12,5 @@ public class JwtClaims {
     private String email;
     private String role;
     private String displayName;
+    private String status;
 }

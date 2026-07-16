@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Email hoặc mật khẩu không đúng");
         }
-        ensureActive(user);
+        ensureCanIssueToken(user);
 
         TokenPair tokenPair = generateTokenPair(user);
 
@@ -81,8 +81,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public TokenPair generateTokenPair(User user) {
-        ensureActive(user);
-        String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name(), user.getDisplayName());
+        ensureCanIssueToken(user);
+        String accessToken = jwtProvider.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getDisplayName(),
+                user.getStatus().name()
+        );
         String rawRefreshToken = jwtProvider.generateRefreshToken(user.getId());
         storeRefreshToken(user, rawRefreshToken);
         return new TokenPair(accessToken, rawRefreshToken);
@@ -104,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.save(stored);
 
         User user = stored.getUser();
-        ensureActive(user);
+        ensureCanIssueToken(user);
         return generateTokenPair(user);
     }
 
@@ -173,9 +179,9 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    private void ensureActive(User user) {
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new BadCredentialsException("Tài khoản này đã bị khóa hoặc xóa");
+    private void ensureCanIssueToken(User user) {
+        if (user.getStatus() != UserStatus.ACTIVE && user.getStatus() != UserStatus.LOCK) {
+            throw new BadCredentialsException("Tài khoản này đã bị xóa");
         }
     }
 

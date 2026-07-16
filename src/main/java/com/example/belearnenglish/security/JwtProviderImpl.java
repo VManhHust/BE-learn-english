@@ -29,13 +29,14 @@ public class JwtProviderImpl implements JwtProvider {
     }
 
     @Override
-    public String generateAccessToken(Long userId, String email, String role, String displayName) {
+    public String generateAccessToken(Long userId, String email, String role, String displayName, String status) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("role", role)
                 .claim("displayName", displayName)
+                .claim("status", status)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(accessTokenExpiration)))
                 .signWith(secretKey)
@@ -67,8 +68,9 @@ public class JwtProviderImpl implements JwtProvider {
             String email = claims.get("email", String.class);
             String role = claims.get("role", String.class);
             String displayName = claims.get("displayName", String.class);
+            String status = claims.get("status", String.class);
 
-            return new JwtClaims(userId, email, role, displayName);
+            return new JwtClaims(userId, email, role, displayName, status);
         } catch (JwtException | IllegalArgumentException e) {
             throw new JwtException("Token invalid or expired", e);
         }
