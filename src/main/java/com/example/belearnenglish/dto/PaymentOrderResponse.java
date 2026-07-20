@@ -1,7 +1,6 @@
 package com.example.belearnenglish.dto;
 
 import com.example.belearnenglish.entity.enums.PaymentOrderStatus;
-import com.example.belearnenglish.entity.enums.ProPlan;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +11,7 @@ import java.util.UUID;
 @Builder
 public class PaymentOrderResponse {
     private UUID orderId;
-    private ProPlan planCode;
+    private String planCode;
     private String planName;
     private Long amount;
     private String currency;

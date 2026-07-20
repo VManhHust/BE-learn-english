@@ -274,6 +274,26 @@ Muc dich: Luu lich su danh gia va lich on tap cua user theo tung tu vung.
 | created_at | TIMESTAMPTZ | Thoi diem tao tien do tu. |
 | updated_at | TIMESTAMPTZ | Thoi diem cap nhat tien do tu. |
 
+## pro_plan_configs
+
+Muc dich: Cau hinh cac goi PRO, gia, thoi han va quyen loi hien thi/quan tri trong CMS.
+
+| Truong | Kieu du lieu | Y nghia |
+| --- | --- | --- |
+| id | BIGSERIAL | Khoa chinh cua goi PRO. |
+| code | VARCHAR(20) | Ma goi duy nhat, duoc luu vao `payment_orders.plan_code`. |
+| name | VARCHAR(120) | Ten goi hien thi. |
+| description | TEXT | Mo ta goi. |
+| amount | BIGINT | Gia goi tinh bang VND; phai lon hon 0. |
+| duration_days | INTEGER | So ngay kich hoat PRO; de trong neu la goi tron doi. |
+| benefits | TEXT | Danh sach quyen loi PRO co ban. |
+| special_benefits | TEXT | Quyen loi dac biet/noi bat cua goi. |
+| status | VARCHAR(20) | Trang thai goi, `ACTIVE` hoac `INACTIVE`. |
+| featured | BOOLEAN | Goi co duoc danh dau noi bat hay khong. |
+| sort_order | INTEGER | Thu tu hien thi va xep hang nang cap. |
+| created_at | TIMESTAMPTZ | Thoi diem tao goi. |
+| updated_at | TIMESTAMPTZ | Thoi diem cap nhat goi. |
+
 ## payment_orders
 
 Muc dich: Luu don thanh toan mua PRO va thoi han kich hoat tu don do.

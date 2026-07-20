@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
@@ -35,6 +36,11 @@ public class PaymentController {
             @AuthenticationPrincipal JwtClaims claims,
             @Valid @RequestBody CreateProOrderRequest request) {
         return ResponseEntity.ok(paymentService.createProOrder(claims.getUserId(), request.getPlanCode()));
+    }
+
+    @GetMapping("/pro/plans")
+    public ResponseEntity<List<PaymentService.ProPlanResponse>> getProPlans() {
+        return ResponseEntity.ok(paymentService.getProPlans());
     }
 
     @GetMapping("/orders/{orderId}")

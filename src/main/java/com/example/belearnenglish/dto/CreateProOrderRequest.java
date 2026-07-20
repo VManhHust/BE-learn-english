@@ -1,12 +1,11 @@
 package com.example.belearnenglish.dto;
 
-import com.example.belearnenglish.entity.enums.ProPlan;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class CreateProOrderRequest {
 
-    @NotNull(message = "Plan is required")
-    private ProPlan planCode;
+    @NotBlank(message = "Plan is required")
+    private String planCode;
 }
