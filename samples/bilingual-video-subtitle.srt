@@ -1,0 +1,14 @@
+1
+00:00:00,000 --> 00:00:03,200
+EN: Welcome to today's English listening lesson.
+VI: Chào mừng bạn đến với bài luyện nghe tiếng Anh hôm nay.
+
+2
+00:00:03,200 --> 00:00:07,100
+EN: We will practice short sentences from a real video.
+VI: Chúng ta sẽ luyện các câu ngắn từ một video thực tế.
+
+3
+00:00:07,100 --> 00:00:11,000
+EN: Listen carefully, repeat, and compare your pronunciation.
+VI: Hãy nghe kỹ, lặp lại và so sánh phát âm của bạn.

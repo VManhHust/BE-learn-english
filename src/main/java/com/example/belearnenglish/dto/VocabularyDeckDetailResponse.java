@@ -39,6 +39,7 @@ public class VocabularyDeckDetailResponse {
         private String category;
         private String description;
         private String coverColor;
+        private String imageUrl;
         private boolean premium;
     }
 

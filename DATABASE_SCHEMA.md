@@ -187,6 +187,7 @@ Muc dich: Luu bo tu vung, la cap cao nhat trong module vocabulary flashcard.
 | category | VARCHAR(120) | Nhom danh muc cua bo tu. |
 | description | TEXT | Mo ta bo tu. |
 | cover_color | VARCHAR(30) | Mau dai dien cua bo tu. |
+| image_url | TEXT | URL anh cover cua bo tu. |
 | status | VARCHAR(30) | Trang thai hien thi, mac dinh `PUBLISHED`. |
 | is_premium | BOOLEAN | Bo tu co yeu cau PRO hay khong. |
 | learner_count | INTEGER | So luong nguoi hoc hien thi/thong ke. |
@@ -324,3 +325,25 @@ Muc dich: Luu webhook thanh toan da nhan de chong xu ly trung va debug payload.
 | transaction_id | BIGINT | ID giao dich webhook, dong thoi la khoa chinh. |
 | raw_payload | TEXT | Payload webhook nguyen ban. |
 | received_at | TIMESTAMPTZ | Thoi diem he thong nhan webhook. |
+
+## audit_logs
+
+Muc dich: Luu lich su thao tac quan tri trong CMS de truy vet ai da tao/sua/xoa du lieu nao.
+
+| Truong | Kieu du lieu | Y nghia |
+| --- | --- | --- |
+| id | BIGSERIAL | Khoa chinh cua audit log. |
+| actor_user_id | BIGINT | ID admin thuc hien thao tac. |
+| actor_email | VARCHAR(255) | Email admin thuc hien thao tac. |
+| action | VARCHAR(20) | Hanh dong, vi du `CREATE`, `UPDATE`, `DELETE`. |
+| resource | VARCHAR(120) | Nhom tai nguyen bi tac dong, vi du `lessons`, `vocabulary/words`. |
+| resource_id | VARCHAR(120) | ID ban ghi bi tac dong neu suy ra duoc tu URL. |
+| http_method | VARCHAR(10) | HTTP method cua request. |
+| request_path | VARCHAR(500) | Duong dan API duoc goi. |
+| query_string | TEXT | Query string cua request neu co. |
+| response_status | INTEGER | HTTP status tra ve. |
+| success | BOOLEAN | Request thanh cong hay that bai. |
+| ip_address | VARCHAR(80) | IP client, uu tien header proxy neu co. |
+| user_agent | TEXT | User-Agent cua trinh duyet/client. |
+| details | JSONB | Thong tin bo sung, vi du query va loi neu request fail. |
+| created_at | TIMESTAMPTZ | Thoi diem ghi log. |

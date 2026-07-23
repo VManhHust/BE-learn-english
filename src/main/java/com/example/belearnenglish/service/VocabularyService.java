@@ -96,7 +96,7 @@ public class VocabularyService {
         List<VocabularyDeckCardDto> decks = jdbcTemplate.query(
             """
             SELECT
-                d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.is_premium,
+                d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.image_url, d.is_premium,
                 d.learner_count,
                 COUNT(DISTINCT t.id)::int AS topic_count,
                 COUNT(DISTINCT w.id)::int AS word_count,
@@ -106,7 +106,7 @@ public class VocabularyService {
             LEFT JOIN vocabulary_word w ON w.topic_id = t.id
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE d.status = 'PUBLISHED'
-            GROUP BY d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.is_premium, d.learner_count, d.sort_order
+            GROUP BY d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.image_url, d.is_premium, d.learner_count, d.sort_order
             ORDER BY d.category, d.sort_order, d.id
             """,
             (rs, rowNum) -> {
@@ -119,6 +119,7 @@ public class VocabularyService {
                     rs.getString("category"),
                     rs.getString("description"),
                     rs.getString("cover_color"),
+                    rs.getString("image_url"),
                     rs.getBoolean("is_premium"),
                     rs.getInt("topic_count"),
                     wordCount,
@@ -492,7 +493,7 @@ public class VocabularyService {
     private DeckDetailDto findDeck(Long deckId) {
         List<DeckDetailDto> decks = jdbcTemplate.query(
             """
-            SELECT id, slug, title, category, description, cover_color, is_premium
+            SELECT id, slug, title, category, description, cover_color, image_url, is_premium
             FROM vocabulary_deck
             WHERE id = ? AND status = 'PUBLISHED'
             """,
@@ -503,6 +504,7 @@ public class VocabularyService {
                 rs.getString("category"),
                 rs.getString("description"),
                 rs.getString("cover_color"),
+                rs.getString("image_url"),
                 rs.getBoolean("is_premium")
             ),
             deckId
