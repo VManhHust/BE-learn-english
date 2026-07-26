@@ -5,6 +5,7 @@ import com.example.belearnenglish.entity.*;
 import com.example.belearnenglish.entity.enums.ExerciseModuleType;
 import com.example.belearnenglish.entity.enums.LearningExerciseType;
 import com.example.belearnenglish.entity.enums.LearningTopicType;
+import com.example.belearnenglish.entity.enums.PublicationStatus;
 import com.example.belearnenglish.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -61,12 +64,14 @@ public class YoutubeExerciseService {
 
     public Page<LearningExerciseDto> getExercisesByChannel(Long channelId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        return extensionRepository.findByChannelId(channelId, pageable)
+        return extensionRepository.findByChannelIdAndExerciseStatus(channelId, PublicationStatus.PUBLISHED, pageable)
                 .map(ext -> toExerciseDto(ext.getLearningExercise(), ext));
     }
 
     public LearningExerciseDto getExerciseById(Long exerciseId) {
-        LearningExercise exercise = exerciseRepository.findById(exerciseId).orElseThrow();
+        LearningExercise exercise = exerciseRepository.findById(exerciseId)
+                .filter(item -> item.getStatus() == PublicationStatus.PUBLISHED)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found"));
         return toExerciseDto(exercise, exercise.getYoutubeExerciseExtension());
     }
 
@@ -111,8 +116,11 @@ public class YoutubeExerciseService {
     // ── Module (transcript segments) ─────────────────────────────────────────
 
     public List<ExerciseModuleDto> getModules(Long exerciseId, int offset, int limit) {
+        LearningExercise exercise = exerciseRepository.findById(exerciseId)
+                .filter(item -> item.getStatus() == PublicationStatus.PUBLISHED)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found"));
         Pageable pageable = PageRequest.of(0, limit).withPage(offset / limit);
-        return moduleRepository.findByExerciseIdOrderByTimeStart(exerciseId, pageable)
+        return moduleRepository.findByExerciseIdOrderByTimeStart(exercise.getId(), pageable)
                 .stream().map(this::toModuleDto).toList();
     }
 
@@ -165,7 +173,7 @@ public class YoutubeExerciseService {
         return new LearningExerciseDto(e.getId(), e.getUuid(), e.getType(), e.getTitle(),
                 e.getModuleCount(), e.getVocabularyLevel(),
                 ext.getVideoId(), ext.getThumbnailUrl(), ext.getDurationSeconds(), channelDto,
-                topicId, topicName, e.isPremium());
+                topicId, topicName, e.isPremium(), e.getStatus().name());
     }
 
     private ExerciseModuleDto toModuleDto(ExerciseModule m) {

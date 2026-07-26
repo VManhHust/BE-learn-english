@@ -1,6 +1,7 @@
 package com.example.belearnenglish.entity;
 
 import com.example.belearnenglish.entity.enums.LearningTopicType;
+import com.example.belearnenglish.entity.enums.PublicationStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,11 @@ public class LearningTopic {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LearningTopicType type;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PublicationStatus status = PublicationStatus.PUBLISHED;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false)

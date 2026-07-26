@@ -15,6 +15,8 @@ public interface YoutubeModuleExtensionRepository extends JpaRepository<YoutubeM
         JOIN LearningExercise le ON em.learningExercise.id = le.id
         JOIN LearningTopic lt ON le.learningTopic.id = lt.id
         WHERE lt.id = :learningTopicId
+          AND lt.status = com.example.belearnenglish.entity.enums.PublicationStatus.PUBLISHED
+          AND le.status = com.example.belearnenglish.entity.enums.PublicationStatus.PUBLISHED
         ORDER BY yme.timeStartMs ASC
         """)
     List<YoutubeModuleExtension> findByLearningTopicIdOrderByTimeStartMsAsc(@Param("learningTopicId") Long learningTopicId);

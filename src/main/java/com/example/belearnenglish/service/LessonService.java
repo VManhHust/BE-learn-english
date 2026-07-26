@@ -1,8 +1,7 @@
 package com.example.belearnenglish.service;
 
 import com.example.belearnenglish.dto.LearningExerciseDto;
-import com.example.belearnenglish.entity.YoutubeExerciseExtension;
-import com.example.belearnenglish.repository.LearningTopicRepository;
+import com.example.belearnenglish.entity.enums.PublicationStatus;
 import com.example.belearnenglish.repository.YoutubeExerciseExtensionRepository;
 import com.example.belearnenglish.entity.enums.LearningTopicType;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +14,12 @@ import org.springframework.stereotype.Service;
 public class LessonService {
 
     private final YoutubeExerciseExtensionRepository extensionRepository;
-    private final LearningTopicRepository topicRepository;
     private final YoutubeExerciseService youtubeExerciseService;
 
     public Page<LearningExerciseDto> getLessonsByTopicType(LearningTopicType type, Pageable pageable) {
         // Hiện tại chỉ hỗ trợ YOUTUBE — lấy tất cả exercise theo channel
         // Trả về toàn bộ exercises thuộc topic YOUTUBE
-        return extensionRepository.findAll(pageable)
+        return extensionRepository.findByExerciseStatus(PublicationStatus.PUBLISHED, pageable)
                 .map(ext -> youtubeExerciseService.toExerciseDtoPublic(ext.getLearningExercise(), ext));
     }
 

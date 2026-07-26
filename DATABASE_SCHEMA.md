@@ -42,6 +42,7 @@ Muc dich: Nhom chu de hoc tap cho cac bai hoc/bai tap, vi du video YouTube.
 | topic_name | VARCHAR(255) | Ten chu de. |
 | description | TEXT | Mo ta chu de. |
 | type | VARCHAR(50) | Loai chu de, vi du `YOUTUBE`. |
+| status | VARCHAR(30) | Trang thai xuat ban: `DRAFT`, `PUBLISHED`, hoac `ARCHIVED`. Public API chi hien thi `PUBLISHED`. |
 | created_at | TIMESTAMPTZ | Thoi diem tao chu de. |
 
 ## youtube_channels
@@ -71,6 +72,7 @@ Muc dich: Luu bai tap hoc tap chinh, gom thong tin chung va quan he voi chu de.
 | module_count | INT | So module/cau trong bai tap. |
 | vocabulary_level | VARCHAR(10) | Trinh do tu vung, vi du A1/A2/B1. |
 | topic_id | BIGINT | Chu de hoc tap cua bai tap. |
+| status | VARCHAR(30) | Trang thai xuat ban: `DRAFT`, `PUBLISHED`, hoac `ARCHIVED`. Public API chi hien thi `PUBLISHED`. |
 | created_at | TIMESTAMPTZ | Thoi diem tao bai tap. |
 | is_premium | BOOLEAN | Bai tap co yeu cau PRO hay khong. |
 
@@ -207,6 +209,7 @@ Muc dich: Luu chu de nho ben trong mot bo tu vung.
 | title | VARCHAR(255) | Ten chu de. |
 | description | TEXT | Mo ta chu de. |
 | thumbnail_url | TEXT | Anh thumbnail cua chu de. |
+| status | VARCHAR(30) | Trang thai xuat ban: `DRAFT`, `PUBLISHED`, hoac `ARCHIVED`. Public API chi hien thi `PUBLISHED`. |
 | sort_order | INTEGER | Thu tu sap xep chu de trong deck. |
 | created_at | TIMESTAMPTZ | Thoi diem tao chu de. |
 | updated_at | TIMESTAMPTZ | Thoi diem cap nhat chu de. |
@@ -231,6 +234,7 @@ Muc dich: Luu tung the tu vung de hoc va on tap.
 | example_sentence | TEXT | Cau vi du tieng Anh. |
 | example_sentence_vi | TEXT | Ban dich cau vi du tieng Viet. |
 | image_url | TEXT | Anh minh hoa cua tu. |
+| status | VARCHAR(30) | Trang thai xuat ban: `DRAFT`, `PUBLISHED`, hoac `ARCHIVED`. Public API chi hien thi `PUBLISHED`. |
 | sort_order | INTEGER | Thu tu hien thi trong topic. |
 | created_at | TIMESTAMPTZ | Thoi diem tao tu. |
 | updated_at | TIMESTAMPTZ | Thoi diem cap nhat tu. |

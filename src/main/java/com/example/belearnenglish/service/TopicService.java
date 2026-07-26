@@ -6,9 +6,9 @@ import com.example.belearnenglish.dto.TopicLessonsResponse;
 import com.example.belearnenglish.entity.LearningExercise;
 import com.example.belearnenglish.entity.LearningTopic;
 import com.example.belearnenglish.entity.YoutubeExerciseExtension;
+import com.example.belearnenglish.entity.enums.PublicationStatus;
 import com.example.belearnenglish.repository.LearningExerciseRepository;
 import com.example.belearnenglish.repository.LearningTopicRepository;
-import com.example.belearnenglish.repository.YoutubeExerciseExtensionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,12 +26,11 @@ import java.util.List;
 public class TopicService {
 
     private final LearningTopicRepository topicRepository;
-    private final YoutubeExerciseExtensionRepository extensionRepository;
     private final LearningExerciseRepository exerciseRepository;
     private final com.example.belearnenglish.repository.ProgressRepository progressRepository;
 
     public List<TopicDto> getAllTopics(Long userId) {
-        return topicRepository.findAll().stream()
+        return topicRepository.findByStatusOrderByIdAsc(PublicationStatus.PUBLISHED).stream()
                 .map(topic -> toDto(topic, userId))
                 .toList();
     }
@@ -46,11 +45,15 @@ public class TopicService {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found: " + slug);
             }
             LearningTopic topic = topicRepository.findById(topicId)
+                    .filter(item -> item.getStatus() == PublicationStatus.PUBLISHED)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found: " + slug));
             log.info("Found topic: id={}, name={}", topic.getId(), topic.getTopicName());
             Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
             PageRequest pageable = PageRequest.of(page, size, sort);
-            Page<LessonPreviewDto> result = exerciseRepository.findByLearningTopicId(topic.getId(), pageable)
+            Page<LessonPreviewDto> result = exerciseRepository.findByLearningTopicIdAndStatus(
+                            topic.getId(),
+                            PublicationStatus.PUBLISHED,
+                            pageable)
                     .map(exercise -> toLessonPreview(exercise, userId));
             log.info("Returning {} lessons (total={})", result.getNumberOfElements(), result.getTotalElements());
             return new TopicLessonsResponse(
@@ -71,9 +74,9 @@ public class TopicService {
     }
 
     private TopicDto toDto(LearningTopic topic, Long userId) {
-        long count = extensionRepository.countByLearningTopicId(topic.getId());
+        long count = exerciseRepository.countByLearningTopicIdAndStatus(topic.getId(), PublicationStatus.PUBLISHED);
         List<LessonPreviewDto> previews = exerciseRepository
-                .findTopByTopicId(topic.getId(), PageRequest.of(0, 4))
+                .findTopByTopicIdAndStatus(topic.getId(), PublicationStatus.PUBLISHED, PageRequest.of(0, 4))
                 .stream()
                 .map(exercise -> toLessonPreview(exercise, userId))
                 .toList();

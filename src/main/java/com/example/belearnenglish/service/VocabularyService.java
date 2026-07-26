@@ -51,10 +51,11 @@ public class VocabularyService {
                 END)::int AS due_reviews,
                 COALESCE(SUM(p.review_count), 0)::int AS total_reviews
             FROM vocabulary_word w
-            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_topic t ON t.id = w.topic_id AND t.status = 'PUBLISHED'
             JOIN vocabulary_deck d ON d.id = t.deck_id AND d.status = 'PUBLISHED'
             LEFT JOIN user_vocabulary_word_progress p
                 ON p.word_id = w.id AND p.user_id = ?
+            WHERE w.status = 'PUBLISHED'
             """,
             (rs, rowNum) -> new VocabularyResponse(
                 rs.getInt("total_words"),
@@ -73,9 +74,10 @@ public class VocabularyService {
                 COUNT(DISTINCT p.word_id)::int AS activity_count
             FROM user_vocabulary_word_progress p
             JOIN vocabulary_word w ON w.id = p.word_id
-            JOIN vocabulary_topic t ON t.id = w.topic_id
+            JOIN vocabulary_topic t ON t.id = w.topic_id AND t.status = 'PUBLISHED'
             JOIN vocabulary_deck d ON d.id = t.deck_id AND d.status = 'PUBLISHED'
             WHERE p.user_id = ?
+              AND w.status = 'PUBLISHED'
               AND p.updated_at >= CURRENT_DATE - INTERVAL '41 days'
             GROUP BY p.updated_at::date
             ORDER BY p.updated_at::date
@@ -102,8 +104,8 @@ public class VocabularyService {
                 COUNT(DISTINCT w.id)::int AS word_count,
                 COUNT(DISTINCT CASE WHEN p.word_id IS NOT NULL THEN w.id END)::int AS learned_words
             FROM vocabulary_deck d
-            LEFT JOIN vocabulary_topic t ON t.deck_id = d.id
-            LEFT JOIN vocabulary_word w ON w.topic_id = t.id
+            LEFT JOIN vocabulary_topic t ON t.deck_id = d.id AND t.status = 'PUBLISHED'
+            LEFT JOIN vocabulary_word w ON w.topic_id = t.id AND w.status = 'PUBLISHED'
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE d.status = 'PUBLISHED'
             GROUP BY d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.image_url, d.is_premium, d.learner_count, d.sort_order
@@ -329,6 +331,8 @@ public class VocabularyService {
             JOIN vocabulary_topic t ON t.id = w.topic_id
             WHERE t.deck_id = (SELECT deck_id FROM vocabulary_topic WHERE id = ?)
               AND w.id <> ?
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
             ORDER BY RANDOM()
             LIMIT 3
             """,
@@ -357,6 +361,8 @@ public class VocabularyService {
                   OR (p.status = 'MASTERED' AND p.review_completed = FALSE AND p.next_review_at <= NOW())
               )
               AND d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
             GROUP BY t.id, t.slug, t.title, t.sort_order, d.id, d.title, d.sort_order
             ORDER BY d.sort_order, d.id, t.sort_order, t.id
             """,
@@ -389,6 +395,8 @@ public class VocabularyService {
                   OR (p.status = 'MASTERED' AND p.review_completed = FALSE AND p.next_review_at <= NOW())
               )
               AND d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
               AND (CAST(? AS BIGINT) IS NULL OR t.id = ?)
             ORDER BY p.updated_at, w.id
             """,
@@ -412,6 +420,8 @@ public class VocabularyService {
             JOIN vocabulary_deck d ON d.id = t.deck_id
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
             ORDER BY d.sort_order, d.id, t.sort_order, t.id, w.sort_order, w.id
             """,
             this::mapWordCard,
@@ -434,6 +444,8 @@ public class VocabularyService {
             WHERE p.user_id = ?
               AND p.not_mastered_count > 0
               AND d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
             ORDER BY p.not_mastered_count DESC, p.updated_at DESC, w.id
             LIMIT 1
             """,
@@ -457,6 +469,8 @@ public class VocabularyService {
             JOIN vocabulary_deck d ON d.id = t.deck_id
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE t.id = ? AND d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
             ORDER BY w.sort_order, w.id
             """,
             this::mapWordCard,
@@ -473,6 +487,8 @@ public class VocabularyService {
             JOIN vocabulary_topic t ON t.id = w.topic_id
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
               AND w.id <> ?
               AND (CAST(? AS BIGINT) IS NULL OR t.id = ?)
             ORDER BY RANDOM()
@@ -527,9 +543,10 @@ public class VocabularyService {
                 COALESCE(ROUND(100.0 * COUNT(wp.word_id) / NULLIF(COUNT(w.id), 0)), 0)::int AS completion_percentage,
                 COUNT(w.id) > 0 AND COUNT(wp.word_id) = COUNT(w.id) AS is_completed
             FROM vocabulary_topic t
-            LEFT JOIN vocabulary_word w ON w.topic_id = t.id
+            LEFT JOIN vocabulary_word w ON w.topic_id = t.id AND w.status = 'PUBLISHED'
             LEFT JOIN user_vocabulary_word_progress wp ON wp.word_id = w.id AND wp.user_id = ?
             WHERE t.deck_id = ?
+              AND t.status = 'PUBLISHED'
             GROUP BY t.id, t.slug, t.title, t.description, t.thumbnail_url, t.sort_order
             ORDER BY t.sort_order, t.id
             """,
@@ -563,7 +580,9 @@ public class VocabularyService {
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             LEFT JOIN user_vocabulary_topic_progress tp ON tp.topic_id = w.topic_id AND tp.user_id = ?
-            WHERE w.topic_id = ? AND p.word_id IS NULL
+            WHERE w.topic_id = ?
+              AND w.status = 'PUBLISHED'
+              AND p.word_id IS NULL
             ORDER BY
                 CASE
                     WHEN tp.shuffle_seed IS NULL THEN w.sort_order::bigint
@@ -592,6 +611,7 @@ public class VocabularyService {
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             LEFT JOIN user_vocabulary_topic_progress tp ON tp.topic_id = w.topic_id AND tp.user_id = ?
             WHERE w.topic_id = ?
+              AND w.status = 'PUBLISHED'
             ORDER BY
                 CASE
                     WHEN tp.shuffle_seed IS NOT NULL AND p.word_id IS NULL THEN 1
@@ -636,6 +656,9 @@ public class VocabularyService {
             JOIN vocabulary_topic t ON t.id = w.topic_id
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE w.id = ?
+              AND d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
+              AND w.status = 'PUBLISHED'
             """,
             (rs, rowNum) -> new ReviewContext(
                 rs.getLong("deck_id"),
@@ -675,6 +698,7 @@ public class VocabularyService {
             FROM vocabulary_topic t
             JOIN vocabulary_deck d ON d.id = t.deck_id
             WHERE t.id = ? AND d.status = 'PUBLISHED'
+              AND t.status = 'PUBLISHED'
             """,
             (rs, rowNum) -> new TopicContext(
                 rs.getLong("deck_id"),
@@ -710,6 +734,7 @@ public class VocabularyService {
             FROM vocabulary_word w
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE w.topic_id = ?
+              AND w.status = 'PUBLISHED'
             ON CONFLICT (user_id, topic_id) DO UPDATE SET
                 learned_words = EXCLUDED.learned_words,
                 current_word_index = EXCLUDED.current_word_index,

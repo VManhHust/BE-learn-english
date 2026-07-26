@@ -1,6 +1,7 @@
 package com.example.belearnenglish.entity;
 
 import com.example.belearnenglish.entity.enums.LearningExerciseType;
+import com.example.belearnenglish.entity.enums.PublicationStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -44,6 +45,11 @@ public class LearningExercise {
     @Builder.Default
     @Column(name = "is_premium", nullable = false)
     private boolean premium = false;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PublicationStatus status = PublicationStatus.PUBLISHED;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id", nullable = false)

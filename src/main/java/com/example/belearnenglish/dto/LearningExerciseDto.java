@@ -22,4 +22,5 @@ public class LearningExerciseDto {
     private Long topicId;
     private String topicName;
     private boolean premium;
+    private String status;
 }
