@@ -351,3 +351,21 @@ Muc dich: Luu lich su thao tac quan tri trong CMS de truy vet ai da tao/sua/xoa 
 | user_agent | TEXT | User-Agent cua trinh duyet/client. |
 | details | JSONB | Thong tin bo sung, vi du query va loi neu request fail. |
 | created_at | TIMESTAMPTZ | Thoi diem ghi log. |
+
+## user_notifications
+
+Muc dich: Luu trung tam thong bao hoc tap trong app, trang thai da doc va du lieu dieu huong cho tung user.
+
+| Truong | Kieu du lieu | Y nghia |
+| --- | --- | --- |
+| id | BIGSERIAL | Khoa chinh cua thong bao. |
+| user_id | BIGINT | User nhan thong bao. |
+| type | VARCHAR(50) | Loai thong bao: on tu, nhac streak hoac hoc tiep bai dang do. |
+| priority | VARCHAR(20) | Muc uu tien `NORMAL` hoac `HIGH`. |
+| data | JSONB | Du lieu trung lap ngon ngu de frontend hien thi Viet/Anh. |
+| action_url | TEXT | Duong dan den noi dung khi user bam thong bao. |
+| dedupe_key | VARCHAR(200) | Khoa duy nhat theo user de chong tao trung trong cung chu ky. |
+| read_at | TIMESTAMPTZ | Thoi diem user danh dau da doc. |
+| expires_at | TIMESTAMPTZ | Thoi diem thong bao khong con tinh vao so chua doc. |
+| created_at | TIMESTAMPTZ | Thoi diem tao thong bao. |
+| updated_at | TIMESTAMPTZ | Thoi diem dong bo du lieu thong bao gan nhat. |
