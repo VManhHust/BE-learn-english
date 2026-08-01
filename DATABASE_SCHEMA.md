@@ -360,7 +360,7 @@ Muc dich: Luu trung tam thong bao hoc tap trong app, trang thai da doc va du lie
 | --- | --- | --- |
 | id | BIGSERIAL | Khoa chinh cua thong bao. |
 | user_id | BIGINT | User nhan thong bao. |
-| type | VARCHAR(50) | Loai thong bao: on tu, nhac streak hoac hoc tiep bai dang do. |
+| type | VARCHAR(50) | Loai thong bao: nhac hoc, nhac streak, hoc tiep hoac noi dung moi duoc CMS xuat ban. |
 | priority | VARCHAR(20) | Muc uu tien `NORMAL` hoac `HIGH`. |
 | data | JSONB | Du lieu trung lap ngon ngu de frontend hien thi Viet/Anh. |
 | action_url | TEXT | Duong dan den noi dung khi user bam thong bao. |
