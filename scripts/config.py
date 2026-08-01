@@ -28,7 +28,7 @@ class Config:
         # Get backend API URL with default
         backend_api_url = os.getenv('BACKEND_API_URL', 'http://localhost:8080')
         
-        # Get YouTube API key (with fallback to default)
+        # Get YouTube API key from the environment
         youtube_api_key = os.getenv('YOUTUBE_API_KEY')
         if not youtube_api_key or youtube_api_key.strip() == '':
             raise YouTubeAPIError(
