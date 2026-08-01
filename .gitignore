@@ -32,5 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
+### Python ###
+scripts/__pycache__/
+scripts/*.pyc
+scripts/*.log
+
 ### Kiro ###
 .kiro/

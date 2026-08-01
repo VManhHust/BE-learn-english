@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.kiro
+target
+*.iml
+*.log
+scripts/__pycache__
+scripts/*.pyc
+README.md
+HELP.md
+DATABASE_SCHEMA.md
+PAYMENT_SETUP_GUIDE.md

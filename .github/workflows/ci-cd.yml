@@ -1,0 +1,127 @@
+name: BE CI/CD
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/vmanhhust/be-learn-english
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test BE
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: learn_english_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d learn_english_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: jdbc:postgresql://localhost:5432/learn_english_ci
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      JWT_SECRET: ci-only-secret-key-at-least-32-bytes-long
+      YOUTUBE_API_KEY: ci-placeholder
+      GOOGLE_CLIENT_ID: ci-placeholder
+      GOOGLE_CLIENT_SECRET: ci-placeholder
+      OXFORD_API_APP_ID: ci-placeholder
+      OXFORD_API_APP_KEY: ci-placeholder
+      MAIL_USERNAME: ci@example.com
+      MAIL_PASSWORD: ci-placeholder
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run tests
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode --no-transfer-progress verify
+
+  image:
+    name: Build BE image
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and optionally push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/master' && github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy BE
+    if: >-
+      github.ref == 'refs/heads/master' &&
+      github.event_name != 'pull_request' &&
+      vars.ENABLE_PRODUCTION_DEPLOY == 'true'
+    needs: image
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-be-production
+      cancel-in-progress: true
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+
+      - name: Deploy backend service
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+        run: |
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$PROD_USER@$PROD_HOST" \
+            "cd /opt/learn-english && docker compose pull backend && docker compose up -d --no-deps backend"
