@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final String REFRESH_COOKIE_NAME = "linguaflow_refresh_token";
+    private static final String REFRESH_COOKIE_NAME = "linguaflow_user_refresh_token";
     private static final long OAUTH_SESSION_CODE_TTL_SECONDS = 120;
 
     private final AuthService authService;
