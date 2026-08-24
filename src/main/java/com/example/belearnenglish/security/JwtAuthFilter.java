@@ -24,9 +24,6 @@ import java.util.Set;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Set<String> PUBLIC_PATHS = Set.of(
-            "/api/auth/login",
-            "/api/auth/register",
-            "/api/auth/register/send-otp",
             "/api/auth/refresh",
             "/api/auth/logout",
             "/api/auth/google",

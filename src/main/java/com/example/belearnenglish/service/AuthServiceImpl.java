@@ -1,19 +1,13 @@
 package com.example.belearnenglish.service;
 
-import com.example.belearnenglish.dto.LoginRequest;
-import com.example.belearnenglish.dto.LoginResponse;
-import com.example.belearnenglish.dto.RegisterRequest;
 import com.example.belearnenglish.dto.TokenPair;
-import com.example.belearnenglish.dto.UserDto;
 import com.example.belearnenglish.entity.RefreshToken;
 import com.example.belearnenglish.entity.User;
 import com.example.belearnenglish.entity.enums.UserStatus;
 import com.example.belearnenglish.repository.RefreshTokenRepository;
-import com.example.belearnenglish.repository.UserRepository;
 import com.example.belearnenglish.security.JwtProvider;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,59 +17,17 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.List;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProvider jwtProvider;
-    private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
 
-    public AuthServiceImpl(UserRepository userRepository,
-                           RefreshTokenRepository refreshTokenRepository,
-                           JwtProvider jwtProvider,
-                           PasswordEncoder passwordEncoder,
-                           EmailVerificationService emailVerificationService) {
-        this.userRepository = userRepository;
+    public AuthServiceImpl(RefreshTokenRepository refreshTokenRepository,
+                           JwtProvider jwtProvider) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtProvider = jwtProvider;
-        this.passwordEncoder = passwordEncoder;
-        this.emailVerificationService = emailVerificationService;
-    }
-
-    @Override
-    @Transactional
-    public LoginResponse register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use");
-        }
-        User user = User.builder()
-                .email(request.getEmail())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getEmail())
-                .build();
-        user = userRepository.save(user);
-        TokenPair tokenPair = generateTokenPair(user);
-        UserDto userDto = toUserDto(user);
-        return new LoginResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), userDto);
-    }
-
-    @Override
-    @Transactional
-    public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BadCredentialsException("Email hoặc mật khẩu không đúng"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new BadCredentialsException("Email hoặc mật khẩu không đúng");
-        }
-        ensureCanIssueToken(user);
-
-        TokenPair tokenPair = generateTokenPair(user);
-
-        UserDto userDto = toUserDto(user);
-        return new LoginResponse(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), userDto);
     }
 
     @Override
@@ -165,44 +117,10 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private UserDto toUserDto(User user) {
-        Instant now = Instant.now();
-        return new UserDto(
-                user.getId(),
-                user.getEmail(),
-                user.getDisplayName(),
-                user.getRole().name(),
-                isProActive(user, now),
-                user.getProStartsAt(),
-                user.getProExpiresAt(),
-                user.getStatus().name()
-        );
-    }
-
     private void ensureCanIssueToken(User user) {
         if (user.getStatus() != UserStatus.ACTIVE && user.getStatus() != UserStatus.LOCK) {
             throw new BadCredentialsException("Tài khoản này đã bị xóa");
         }
     }
 
-    private boolean isProActive(User user, Instant now) {
-        boolean started = user.getProStartsAt() == null || !user.getProStartsAt().isAfter(now);
-        return started && user.getProExpiresAt() != null && user.getProExpiresAt().isAfter(now);
-    }
-
-    @Override
-    @Transactional
-    public void resetPassword(String email, String otpCode, String newPassword) {
-        // Verify OTP (sẽ ném IllegalArgumentException nếu sai/hết hạn)
-        emailVerificationService.verifyOtp(email, otpCode);
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này."));
-
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-
-        // Thu hồi tất cả refresh token hiện có để buộc đăng nhập lại
-        refreshTokenRepository.deleteExpiredOrRevokedByUserId(user.getId(), Instant.now());
-    }
 }
