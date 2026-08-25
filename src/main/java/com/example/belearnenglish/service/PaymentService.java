@@ -196,8 +196,14 @@ public class PaymentService {
         if (order.getStatus() == PaymentOrderStatus.PAID) {
             return;
         }
-        if (!normalizeAccount(accountNumber).equals(normalizeAccount(payload.getAccountNumber()))) {
-            log.warn("Account mismatch for SePay transaction {}", payload.getId());
+        if (!matchesConfiguredAccount(accountNumber, payload)) {
+            log.warn(
+                    "Account mismatch for SePay transaction {}: configured={}, accountNumber={}, subAccount={}",
+                    payload.getId(),
+                    accountNumber,
+                    payload.getAccountNumber(),
+                    payload.getSubAccount()
+            );
             return;
         }
         if (!order.getAmount().equals(payload.getTransferAmount())) {
@@ -347,8 +353,14 @@ public class PaymentService {
                 .toUpperCase(Locale.ROOT);
     }
 
-    private String normalizeAccount(String value) {
+    private static String normalizeAccount(String value) {
         return value == null ? "" : value.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+    }
+
+    static boolean matchesConfiguredAccount(String configuredAccount, SepayWebhookPayload payload) {
+        String normalizedConfiguredAccount = normalizeAccount(configuredAccount);
+        return normalizedConfiguredAccount.equals(normalizeAccount(payload.getAccountNumber()))
+                || normalizedConfiguredAccount.equals(normalizeAccount(payload.getSubAccount()));
     }
 
     private void validatePaymentConfiguration() {
