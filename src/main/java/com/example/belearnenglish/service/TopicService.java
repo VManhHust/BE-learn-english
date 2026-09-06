@@ -48,7 +48,8 @@ public class TopicService {
                     .filter(item -> item.getStatus() == PublicationStatus.PUBLISHED)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found: " + slug));
             log.info("Found topic: id={}, name={}", topic.getId(), topic.getTopicName());
-            Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+            Sort sort = Sort.by(Sort.Direction.ASC, "createdAt")
+                    .and(Sort.by(Sort.Direction.ASC, "id"));
             PageRequest pageable = PageRequest.of(page, size, sort);
             Page<LessonPreviewDto> result = exerciseRepository.findByLearningTopicIdAndStatus(
                             topic.getId(),

@@ -12,14 +12,14 @@ import java.util.List;
 
 public interface LearningExerciseRepository extends JpaRepository<LearningExercise, Long> {
 
-    @Query("SELECT e FROM LearningExercise e WHERE e.learningTopic.id = :topicId ORDER BY e.createdAt DESC")
+    @Query("SELECT e FROM LearningExercise e WHERE e.learningTopic.id = :topicId ORDER BY e.createdAt ASC, e.id ASC")
     List<LearningExercise> findTopByTopicId(Long topicId, Pageable pageable);
 
     @Query("""
             SELECT e FROM LearningExercise e
             WHERE e.learningTopic.id = :topicId
               AND e.status = :status
-            ORDER BY e.createdAt DESC
+            ORDER BY e.createdAt ASC, e.id ASC
             """)
     List<LearningExercise> findTopByTopicIdAndStatus(
             @Param("topicId") Long topicId,

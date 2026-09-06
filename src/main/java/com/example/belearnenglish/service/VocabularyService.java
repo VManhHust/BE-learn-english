@@ -108,8 +108,8 @@ public class VocabularyService {
             LEFT JOIN vocabulary_word w ON w.topic_id = t.id AND w.status = 'PUBLISHED'
             LEFT JOIN user_vocabulary_word_progress p ON p.word_id = w.id AND p.user_id = ?
             WHERE d.status = 'PUBLISHED'
-            GROUP BY d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.image_url, d.is_premium, d.learner_count, d.sort_order
-            ORDER BY d.category, d.sort_order, d.id
+            GROUP BY d.id, d.slug, d.title, d.category, d.description, d.cover_color, d.image_url, d.is_premium, d.learner_count, d.created_at
+            ORDER BY d.category, d.created_at ASC, d.id ASC
             """,
             (rs, rowNum) -> {
                 int wordCount = rs.getInt("word_count");
